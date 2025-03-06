@@ -31,7 +31,10 @@ class CommandExecutor:
         """Send input to the running interactive process"""
         if self._interactive_mode and self._master_fd:
             input_bytes = (input_text + '\n').encode()
-            os.write(self._master_fd, input_bytes)
+            try:
+                os.write(self._master_fd, input_bytes)
+            except OSError:
+                self._output_queue.put(('error', "Failed to send input to process"))
 
     def execute_command(self, command, output_container, progress_bar, status_container, cmd_entry):
         def run_command():
@@ -45,45 +48,62 @@ class CommandExecutor:
                 self._interactive_mode = any(cmd in command.split()[0] for cmd in interactive_commands)
 
                 if self._interactive_mode:
-                    # Create pseudo-terminal for interactive commands
-                    self._master_fd, self._slave_fd = pty.openpty()
-                    # Set terminal size
-                    term_size = struct.pack('HHHH', 24, 80, 0, 0)
-                    fcntl.ioctl(self._slave_fd, termios.TIOCSWINSZ, term_size)
+                    try:
+                        # Create pseudo-terminal
+                        self._master_fd, self._slave_fd = pty.openpty()
 
-                    # Start process in pseudo-terminal
-                    process = subprocess.Popen(
-                        command.split(),
-                        stdin=self._slave_fd,
-                        stdout=self._slave_fd,
-                        stderr=self._slave_fd,
-                        preexec_fn=os.setsid,
-                        start_new_session=True
-                    )
+                        # Set terminal size
+                        term_size = struct.pack('HHHH', 24, 80, 0, 0)
+                        fcntl.ioctl(self._slave_fd, termios.TIOCSWINSZ, term_size)
 
-                    self._current_process = process
+                        # Start process with PTY
+                        process = subprocess.Popen(
+                            command.split(),
+                            stdin=self._slave_fd,
+                            stdout=self._slave_fd,
+                            stderr=self._slave_fd,
+                            close_fds=True
+                        )
 
-                    # Read output from pseudo-terminal
-                    while True:
-                        try:
-                            r, w, e = select.select([self._master_fd], [], [], 0.1)
-                            if self._master_fd in r:
-                                data = os.read(self._master_fd, 1024).decode()
-                                if data:
-                                    output_text.append(data)
-                                    self._output_queue.put(('output', ''.join(output_text)))
+                        self._current_process = process
 
-                            # Check if process has ended
-                            if process.poll() is not None:
+                        # Read output from pseudo-terminal
+                        while True:
+                            try:
+                                r, w, e = select.select([self._master_fd], [], [], 0.1)
+                                if self._master_fd in r:
+                                    data = os.read(self._master_fd, 1024).decode(errors='replace')
+                                    if data:
+                                        output_text.append(data)
+                                        self._output_queue.put(('output', ''.join(output_text)))
+
+                                # Check if process has ended
+                                if process.poll() is not None:
+                                    break
+
+                            except (OSError, IOError) as e:
+                                if e.errno == 5:  # Input/output error, possibly due to closed PTY
+                                    break
+                                self._output_queue.put(('error', f"PTY Error: {str(e)}"))
                                 break
 
-                        except (OSError, IOError) as e:
-                            if e.errno == 5:  # Input/output error, possibly due to closed PTY
-                                break
-                            raise
+                    except Exception as e:
+                        self._output_queue.put(('error', f"Interactive mode error: {str(e)}"))
+                        self._interactive_mode = False
+                        # Fall back to non-interactive mode
+                        process = subprocess.Popen(
+                            command,
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True,
+                            bufsize=1,
+                            universal_newlines=True
+                        )
+                        self._current_process = process
 
                 else:
-                    # Non-interactive command handling (existing code)
+                    # Non-interactive command handling
                     process = subprocess.Popen(
                         command,
                         shell=True,
@@ -91,8 +111,7 @@ class CommandExecutor:
                         stderr=subprocess.PIPE,
                         text=True,
                         bufsize=1,
-                        universal_newlines=True,
-                        executable='/bin/bash'
+                        universal_newlines=True
                     )
 
                     self._current_process = process
@@ -140,6 +159,7 @@ class CommandExecutor:
                 cmd_entry['return_code'] = -1
 
             finally:
+                # Clean up PTY resources
                 if self._interactive_mode:
                     if self._master_fd:
                         try:
@@ -155,6 +175,7 @@ class CommandExecutor:
                     self._slave_fd = None
                     self._interactive_mode = False
 
+                # Clean up process
                 if self._current_process:
                     try:
                         self._current_process.terminate()
