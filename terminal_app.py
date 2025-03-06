@@ -74,12 +74,15 @@ def main():
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
                 
-    # Process any queued updates from background threads
-    if 'output_updates' in st.session_state and st.session_state.output_updates:
-        # Get the last update
-        latest_update = st.session_state.output_updates[-1]
-        # Clear queue after processing
-        st.session_state.output_updates = []
+    # Initialize output state variables if they don't exist
+    if "latest_output" not in st.session_state:
+        st.session_state["latest_output"] = ""
+    if "latest_progress" not in st.session_state:
+        st.session_state["latest_progress"] = 0.0
+    if "output_pending" not in st.session_state:
+        st.session_state["output_pending"] = False
+    if "command_completed" not in st.session_state:
+        st.session_state["command_completed"] = False
 
     # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
@@ -151,18 +154,27 @@ def main():
     elif execute:
         st.error("Please enter a command")
         
-    # Display any queued output from background threads
-    if 'output_updates' in st.session_state and st.session_state.output_updates and len(st.session_state.output_updates) > 0:
-        latest = st.session_state.output_updates[-1]
-        if 'output' in latest and latest['output']:
-            output_placeholder.code(latest['output'], language="bash")
-        if 'progress' in latest:
-            progress_placeholder.progress(latest['progress'])
-        if 'status' in latest:
-            if latest.get('success', False):
-                status_placeholder.success(latest['status'])
-            else:
-                status_placeholder.error(latest['status'])
+    # Display current output from session state
+    if st.session_state["output_pending"]:
+        # Update output display
+        if st.session_state["latest_output"]:
+            output_placeholder.code(st.session_state["latest_output"], language="bash")
+        
+        # Update progress bar
+        if "latest_progress" in st.session_state:
+            progress_placeholder.progress(st.session_state["latest_progress"])
+        
+        # Show completion status if command is done
+        if st.session_state.get("command_completed", False):
+            if "latest_status" in st.session_state:
+                if st.session_state.get("latest_success", False):
+                    status_placeholder.success(st.session_state["latest_status"])
+                else:
+                    status_placeholder.error(st.session_state["latest_status"])
+                # Reset completion flag after showing status
+                st.session_state["command_completed"] = False
+        
+        # Keep output pending flag true to ensure output remains visible
 
 if __name__ == "__main__":
     main()

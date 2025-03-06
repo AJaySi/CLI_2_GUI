@@ -104,29 +104,23 @@ class CommandExecutor:
                     current_time = time.time()
                     if current_time - last_update_time >= update_interval:
                         last_update_time = current_time
-
-                        # Store output in session state for access from the main thread
-                        if 'output_updates' not in st.session_state:
-                            st.session_state.output_updates = []
-
-                        # Add latest update to queue
-                        st.session_state.output_updates.append({
-                            'output': output_buffer,
-                            'progress': min(0.99, (time.time() - start_time) / 60),
-                            'timestamp': datetime.now().strftime("%H:%M:%S")
-                        })
-
-                        # Also try direct updates (may work in some contexts)
+                        
+                        # Calculate progress
+                        elapsed = time.time() - start_time
+                        progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
+                        
+                        # Use a direct session state approach for thread safety
+                        st.session_state["latest_output"] = output_buffer
+                        st.session_state["latest_progress"] = progress
+                        st.session_state["latest_timestamp"] = time.time()
+                        st.session_state["output_pending"] = True
+                        
+                        # Also try direct updates as backup (but don't rely on them)
                         try:
-                            # Force code display with specific formatting
                             output_placeholder.code(output_buffer, language="bash")
-
-                            # Update progress bar with more visible progress
-                            elapsed = time.time() - start_time
-                            progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                             progress_placeholder.progress(progress)
-                        except (Exception, streamlit.errors.NoSessionContext):
-                            # Silently handle streamlit context errors in threads
+                        except Exception:
+                            # Ignore any errors in direct updates
                             pass
 
                 except (OSError, IOError) as e:
@@ -140,26 +134,26 @@ class CommandExecutor:
                 if return_code is not None:
                     status = "Completed successfully" if return_code == 0 else f"Failed with code {return_code}"
 
-                    # Queue final update
-                    st.session_state.output_updates.append({
-                        "output": output_buffer,
-                        "progress": 1.0,
-                        "status": status,
-                        "success": return_code == 0,
-                        "timestamp": time.time()
-                    })
-
-                    # Also try direct updates
+                    # Set final update in session state
+                    st.session_state["latest_output"] = output_buffer
+                    st.session_state["latest_progress"] = 1.0
+                    st.session_state["latest_status"] = status
+                    st.session_state["latest_success"] = return_code == 0
+                    st.session_state["latest_timestamp"] = time.time()
+                    st.session_state["output_pending"] = True
+                    st.session_state["command_completed"] = True
+                    
+                    # Try direct updates as backup
                     try:
-                        # Force one last output update
                         output_placeholder.code(output_buffer, language="bash")
                         progress_placeholder.progress(1.0)
-
+                        
                         if return_code == 0:
                             status_placeholder.success(status)
                         else:
                             status_placeholder.error(status)
                     except Exception:
+                        # Ignore any errors in direct updates
                         pass
 
                     # Update command history entry
