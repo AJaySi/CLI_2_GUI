@@ -1,0 +1,128 @@
+Primary Command Groups
+auth - Authentication management
+cluster - Cluster-wide operations
+config - Configuration management
+upgrade - Upgrade management
+diag - Diagnostics and debugging
+export - Export management
+filesystem - File system management
+node - Node-specific operations
+prereq - Prerequisite checks
+nfs_export (deprecated) - NFS export management
+smb_export (deprecated) - SMB export management
+restart/start/stop (deprecated) - General operations
+Detailed Commands with Descriptions
+1. auth
+clean → Remove the auth configuration
+commit → Commit the edited auth configuration
+edit → Edit the auth configuration
+init → Initialize the authentication configuration
+show → Display the current auth configuration
+2. cluster
+destroy → Stop and remove NSDS components from all nodes in the cluster
+init → Create and initialize the NSDS cluster
+rename → Rename the cluster
+restart → Restart NSDS services on all nodes in the cluster
+start → Start NSDS services on all nodes in the cluster
+status → Display the cluster status
+stop → Stop NSDS services on all nodes in the cluster
+3. config
+cluster
+backup → Backup NSDS component configurations
+list → Display current cluster configurations
+docker
+list → Show current docker runtime options
+update → Update docker runtime options
+file
+list → List config files
+update → Update an NSDS config file
+nfs
+disable → Disable NFS service
+enable → Enable NFS service
+list → List NFS global config
+update → Update NFS config
+smb
+disable → Disable SMB service
+enable → Enable SMB service
+list → List SMB global config
+update → Update SMB config
+feature
+list → List available features
+update → Set a feature value
+4. upgrade
+apply → Apply NSDS config upgrades on all nodes
+check → Check if NSDS config can be upgraded
+status → Check upgrade status on all nodes
+5. diag
+collect → Collect support bundles for NSDS nodes
+lustre
+debug → Enable/disable Lustre client diagnostics
+nfs
+debug → Enable/disable debug for NFS service
+smb
+debug → Enable/disable debug for SMB service
+6. export
+nfs
+add → Add a new NFS export
+list → List NFS exports
+load → Load exports from config
+remove → Remove NFS exports
+show → Show NFS exports
+update → Update existing NFS exports
+smb
+add → Add a new SMB export
+list → List SMB exports
+load → Load exports from config
+remove → Remove SMB exports
+show → Show SMB exports
+update → Update existing SMB exports
+7. filesystem
+add → Add a new file system
+list → List file systems
+remove → Remove a file system
+8. node
+add → Add a node to the cluster
+remove → Remove a node from the cluster
+rename → Rename a specific node
+restart → Restart NSDS services on a node
+start → Start NSDS services on a node
+status → Show the current node status
+stop → Stop NSDS services on a node
+9. prereq
+check → Run prerequisite checks on given nodes
+list → List all checks
+show → Display prerequisite check information
+10. Deprecated Commands
+nfs_export and smb_export
+add, list, remove, status (All marked deprecated)
+General operations
+restart, start, stop (All marked deprecated)
+Proposed Streamlit UI Design
+1. Layout Design
+Left Sidebar or Dropdown Menu: For selecting the primary command group (e.g., auth, cluster, config, etc.).
+Main Area: Displays subcommands and their descriptions dynamically based on the selected group.
+Inputs Section: Shows relevant input fields or options for the selected subcommand (e.g., fields for file upload, text input, toggles for enabling/disabling services, etc.).
+Output Area: Displays the result of the selected operation.
+2. Components for Each Section
+Sidebar/Dropdown
+A dropdown or sidebar list with all primary command groups.
+Dynamic Subcommand Panel
+A container with buttons/cards representing subcommands (e.g., add, remove, status).
+Tooltip or modal to show subcommand descriptions.
+Input Fields
+Text input, checkboxes, file upload, or toggles based on the subcommand's requirements.
+Action Button
+A "Run Command" button to trigger the selected operation.
+Output Display
+A text box or table to show command results.
+3. Styling and Enhancements
+Collapsible Sections: For subcommands with multiple operations (e.g., config → cluster, nfs, smb).
+Icons: Add icons to distinguish categories visually.
+Dynamic Validation: Ensure valid inputs before executing commands.
+Logging Panel: Include a section for command logs and errors.
+4. Workflow
+Select a primary command group.
+Choose a subcommand.
+Provide required inputs.
+Click "Run Command" to execute.
+View results or error messages in the output panel
