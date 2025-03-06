@@ -3,7 +3,7 @@ import threading
 import time
 import streamlit as st
 from datetime import datetime
-from queue import Queue
+from queue import Queue, Empty
 
 class CommandExecutor:
     def __init__(self):
@@ -37,30 +37,36 @@ class CommandExecutor:
                 # Read output in real-time
                 while True:
                     # Check if process has finished
-                    return_code = process.poll()
+                    if process.poll() is not None:
+                        remaining_stdout, remaining_stderr = process.communicate()
+                        if remaining_stdout:
+                            output_text.append(remaining_stdout.strip())
+                            self._output_queue.put(('output', '\n'.join(output_text)))
+                        if remaining_stderr:
+                            output_text.append(f"ERROR: {remaining_stderr.strip()}")
+                            self._output_queue.put(('output', '\n'.join(output_text)))
+                        break
 
                     # Read available output
-                    stdout_data = process.stdout.read1().decode() if process.stdout else ''
-                    stderr_data = process.stderr.read1().decode() if process.stderr else ''
+                    stdout_line = process.stdout.readline()
+                    stderr_line = process.stderr.readline()
 
-                    if stdout_data:
-                        output_text.append(stdout_data)
+                    if stdout_line:
+                        output_text.append(stdout_line.strip())
                         self._output_queue.put(('output', '\n'.join(output_text)))
 
-                    if stderr_data:
-                        output_text.append(f"ERROR: {stderr_data}")
+                    if stderr_line:
+                        output_text.append(f"ERROR: {stderr_line.strip()}")
                         self._output_queue.put(('output', '\n'.join(output_text)))
 
                     # Update progress
                     elapsed_time = time.time() - start_time
-                    self._output_queue.put(('progress', min(1.0, elapsed_time / 10.0)))
-
-                    if return_code is not None:
-                        break
+                    self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
 
                     time.sleep(0.1)  # Small delay to prevent CPU overuse
 
                 # Get return code and update status
+                return_code = process.poll()
                 cmd_entry['return_code'] = return_code
 
                 # Final status update
@@ -78,6 +84,12 @@ class CommandExecutor:
                 cmd_entry['return_code'] = -1
 
             finally:
+                if self._current_process:
+                    try:
+                        self._current_process.terminate()
+                        self._current_process.wait(timeout=1)
+                    except:
+                        pass
                 self._is_running = False
                 self._current_process = None
                 self._output_queue.put(('progress', 1.0))
@@ -100,11 +112,18 @@ class CommandExecutor:
                     elif msg_type == 'error':
                         output_container.error(data)
 
-                except Exception:
-                    time.sleep(0.1)  # Wait a bit if queue is empty
+                except Empty:
                     continue
+                except Exception as e:
+                    output_container.error(f"UI Update Error: {str(e)}")
+                    time.sleep(0.1)
 
-        # Start command execution in a separate thread
+        # Clear previous output
+        output_container.empty()
+        status_container.empty()
+        progress_bar.progress(0.0)
+
+        # Start command execution in separate threads
         command_thread = threading.Thread(target=run_command)
         ui_thread = threading.Thread(target=update_ui)
 
@@ -113,5 +132,9 @@ class CommandExecutor:
 
     def terminate_current_process(self):
         if self._current_process and self._is_running:
-            self._current_process.terminate()
+            try:
+                self._current_process.terminate()
+                self._current_process.wait(timeout=1)
+            except:
+                pass
             self._is_running = False
