@@ -64,15 +64,25 @@ def main():
 
     # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
-        interactive_input = st.text_input(
-            "Interactive Input:",
-            key="interactive_input",
-            placeholder="Enter input for the running command...",
-            help="Type your input and press Enter to send it to the running command"
-        )
-        if interactive_input and interactive_input != st.session_state.interactive_input:
-            st.session_state.interactive_input = interactive_input
-            st.session_state.command_executor.send_input(interactive_input)
+        st.info("🖥️ Interactive session is active. Enter your input below and press Enter to send.")
+        
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            interactive_input = st.text_input(
+                "Interactive Input:",
+                key="interactive_input",
+                placeholder="Enter input for the running command...",
+                help="Type your input and press Enter to send it to the running command"
+            )
+        with col2:
+            send_button = st.button("Send", key="send_input_button")
+            
+        if (interactive_input and interactive_input != st.session_state.interactive_input) or send_button:
+            if interactive_input:
+                st.session_state.interactive_input = interactive_input
+                st.session_state.command_executor.send_input(interactive_input)
+                # Clear the input field after sending
+                st.session_state.interactive_input = ""
 
     # Main output area
     output_placeholder = st.empty()

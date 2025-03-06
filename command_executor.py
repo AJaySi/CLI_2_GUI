@@ -32,11 +32,15 @@ class CommandExecutor:
         if self._interactive_mode and self._master_fd:
             input_bytes = (input_text + '\n').encode()
             try:
-                # Add input to output queue before sending
-                self._output_queue.put(('output', f">>> {input_text}"))
+                # Add input to output as user input marker
+                self._output_queue.put(('output', '\n'.join([line for line in self._output_queue.queue 
+                                                             if isinstance(line, tuple) and line[0] == 'output' 
+                                                             and len(line) > 1 and isinstance(line[1], str)
+                                                             and line[1]][-1] if self._output_queue.queue else '') + f"\n>>> {input_text}"))
+                # Write to the process stdin
                 os.write(self._master_fd, input_bytes)
-            except OSError:
-                self._output_queue.put(('error', "Failed to send input to process"))
+            except OSError as e:
+                self._output_queue.put(('error', f"Failed to send input to process: {str(e)}"))
 
     def execute_command(self, command, output_container, progress_bar, status_container, cmd_entry):
         def run_command():
@@ -89,9 +93,9 @@ class CommandExecutor:
                                             buffer = lines[-1]
                                             # Process complete lines
                                             for line in lines[:-1]:
-                                                if line.strip():
-                                                    output_text.append(line)
-                                                    self._output_queue.put(('output', '\n'.join(output_text)))
+                                                output_text.append(line)
+                                            # Update the output even if lines are empty to show prompts
+                                            self._output_queue.put(('output', '\n'.join(output_text)))
                                     except OSError as e:
                                         if e.errno != 11:  # Ignore "Resource temporarily unavailable"
                                             raise
@@ -114,6 +118,10 @@ class CommandExecutor:
                     except Exception as e:
                         self._output_queue.put(('error', f"Interactive mode error: {str(e)}"))
                         self._interactive_mode = False
+                        
+                    # Add a message to indicate interactive mode is active
+                    if self._interactive_mode:
+                        self._output_queue.put(('status', (True, "Interactive session active. Use the Interactive Input field below to communicate with the process.")))
 
                 else:
                     # Non-interactive command handling
