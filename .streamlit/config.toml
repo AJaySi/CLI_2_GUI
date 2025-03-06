@@ -9,3 +9,16 @@ backgroundColor = "#0E1117"
 secondaryBackgroundColor = "#262730"
 textColor = "#FAFAFA"
 font = "monospace"
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[runner]
+fastReruns = true
+
+[theme]
+primaryColor = "#00ff00"
+backgroundColor = "#262730"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#FAFAFA"

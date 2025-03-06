@@ -19,13 +19,15 @@ def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def main():
-    # Set page config must be the first Streamlit command
-    st.set_page_config(
-        page_title="Web Terminal",
-        page_icon="🖥️",
-        layout="wide"
-    )
-
+    # Make sure set_page_config is the very first Streamlit command
+    if 'page_config_set' not in st.session_state:
+        st.set_page_config(
+            page_title="Web Terminal",
+            page_icon="🖥️",
+            layout="wide"
+        )
+        st.session_state.page_config_set = True
+    
     # Apply styles after page config
     apply_styles()
     initialize_session_state()

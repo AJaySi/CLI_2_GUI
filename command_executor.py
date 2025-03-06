@@ -96,12 +96,17 @@ class CommandExecutor:
 
                     # Add to buffer and update display
                     output_buffer += data
-                    output_placeholder.code(output_buffer, language="bash")
-
-                    # Update progress bar (simulation)
-                    elapsed = time.time() - start_time
-                    progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
-                    progress_placeholder.progress(progress)
+                    # Use try/except to handle potential NoSessionContext errors
+                    try:
+                        output_placeholder.code(output_buffer, language="bash")
+                        
+                        # Update progress bar (simulation)
+                        elapsed = time.time() - start_time
+                        progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
+                        progress_placeholder.progress(progress)
+                    except Exception as e:
+                        # Silently handle streamlit context errors in threads
+                        pass
 
                 except (OSError, IOError) as e:
                     if e.errno != 11:  # EAGAIN: Resource temporarily unavailable
