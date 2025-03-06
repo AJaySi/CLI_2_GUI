@@ -5,6 +5,13 @@ from datetime import datetime
 from command_executor import CommandExecutor
 from styles import apply_styles
 
+# Make sure set_page_config is the very first Streamlit command
+st.set_page_config(
+    page_title="Web Terminal",
+    page_icon="🖥️",
+    layout="wide"
+)
+
 def initialize_session_state():
     if 'command_history' not in st.session_state:
         st.session_state.command_history = []
@@ -19,15 +26,6 @@ def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def main():
-    # Make sure set_page_config is the very first Streamlit command
-    if 'page_config_set' not in st.session_state:
-        st.set_page_config(
-            page_title="Web Terminal",
-            page_icon="🖥️",
-            layout="wide"
-        )
-        st.session_state.page_config_set = True
-    
     # Apply styles after page config
     apply_styles()
     initialize_session_state()
