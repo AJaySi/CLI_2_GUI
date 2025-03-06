@@ -1,146 +1,60 @@
 import streamlit as st
 
 def apply_styles():
+    # Apply custom CSS
     st.markdown("""
     <style>
-    .stTextInput>div>div>input {
-        font-family: monospace;
+    /* Terminal-like styling */
+    .stTextInput input {
+        font-family: 'Courier New', monospace;
+        background-color: #0e1117;
+        color: #fff;
+        border: 1px solid #2e6f95;
     }
 
-    /* Interactive mode styling */
-    [data-testid="stInfo"] {
-        background-color: #f0f7ff;
-        border-left: 5px solid #1c83e1;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    /* Button styling */
-    .stButton>button {
-        font-weight: bold;
-    }
-
-        .stTextInput > div > div > input {
-            background-color: #262730;
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
-            border: 1px solid #00ff00;
-        }
-
-        .stButton > button {
-            background-color: #262730;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            border-radius: 4px;
-            padding: 0.5rem 1rem;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .stButton > button:hover {
-            background-color: #00ff00;
-            color: #262730;
-        }
-
-        pre {
-            background-color: #262730 !important;
-            color: #00ff00 !important;
-            padding: 1rem !important;
-            border-radius: 4px !important;
-            font-family: 'Courier New', Courier, monospace !important;
-        }
-
-        .error {
-            color: #ff0000 !important;
-        }
-
-        .sidebar .element-container {
-            background-color: #262730;
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Improve output visibility */
-        code {
-            background-color: #1e1e1e;
-            color: #f8f8f8;
-            padding: 1rem;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            white-space: pre-wrap;
-            display: block;
-            overflow-x: auto;
-        }
-        
-        /* Make progress bar more visible */
-        .stProgress > div > div {
-            height: 10px !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-import streamlit as st
-
-def apply_styles():
-    st.markdown("""
-    <style>
-    .stTextInput>div>div>input {
-        font-family: monospace;
-    }
-
-    /* Interactive mode styling */
-    [data-testid="stInfo"] {
-        background-color: #f0f7ff;
-        border-left: 5px solid #1c83e1;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    /* Button styling */
-    .stButton>button {
-        font-weight: bold;
-    }
-
-    .stTextInput > div > div > input {
-        background-color: #262730;
-        color: #00ff00;
-        font-family: 'Courier New', Courier, monospace;
-        border: 1px solid #00ff00;
-    }
-
-    .stButton > button {
-        background-color: #262730;
-        color: #00ff00;
-        border: 1px solid #00ff00;
-        border-radius: 4px;
-        padding: 0.5rem 1rem;
-        font-family: 'Courier New', Courier, monospace;
-    }
-
-    .stButton > button:hover {
-        background-color: #00ff00;
-        color: #262730;
-    }
-
+    /* Command output styling */
     pre {
-        background-color: #262730 !important;
-        color: #00ff00 !important;
-        padding: 1rem !important;
-        border-radius: 4px !important;
-        font-family: 'Courier New', Courier, monospace !important;
+        background-color: #0e1117;
+        color: #cccccc;
+        border: 1px solid #2e6f95;
+        border-radius: 5px;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        max-height: 500px;
+        overflow-y: auto;
     }
 
-    .error {
-        color: #ff0000 !important;
+    /* Button styling */
+    .stButton button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
     }
-    
+
+    .stButton button:hover {
+        background-color: #2980b9;
+    }
+
+    /* Success message styling */
+    .element-container .stSuccess {
+        background-color: #27ae60;
+    }
+
+    /* Error message styling */
+    .element-container .stError {
+        background-color: #e74c3c;
+    }
+
+    /* Sidebar styling */
     .sidebar .element-container {
         background-color: #262730;
         padding: 0.5rem;
         border-radius: 4px;
         margin-bottom: 0.5rem;
     }
-    
+
     /* Improve output visibility */
     code {
         background-color: #1e1e1e;
@@ -153,60 +67,10 @@ def apply_styles():
         display: block;
         overflow-x: auto;
     }
-    
+
     /* Make progress bar more visible */
     .stProgress > div > div {
         height: 10px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-import streamlit as st
-
-def apply_styles():
-    # Apply custom CSS
-    st.markdown("""
-    <style>
-    /* Terminal-like styling */
-    .stTextInput input {
-        font-family: 'Courier New', monospace;
-        background-color: #0e1117;
-        color: #fff;
-        border: 1px solid #2e6f95;
-    }
-    
-    /* Command output styling */
-    pre {
-        background-color: #0e1117;
-        color: #cccccc;
-        border: 1px solid #2e6f95;
-        border-radius: 5px;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        max-height: 500px;
-        overflow-y: auto;
-    }
-    
-    /* Button styling */
-    .stButton button {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 20px;
-    }
-    
-    .stButton button:hover {
-        background-color: #2980b9;
-    }
-    
-    /* Success message styling */
-    .element-container .stSuccess {
-        background-color: #27ae60;
-    }
-    
-    /* Error message styling */
-    .element-container .stError {
-        background-color: #e74c3c;
     }
     </style>
     """, unsafe_allow_html=True)

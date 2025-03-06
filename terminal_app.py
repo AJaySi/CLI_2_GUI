@@ -116,10 +116,10 @@ def terminal_page():
         # Force a rerun at a more controlled interval to update UI with latest output
         if "last_rerun_time" not in st.session_state:
             st.session_state.last_rerun_time = time.time()
-            st.rerun()
+            st.experimental_rerun()
         elif time.time() - st.session_state.last_rerun_time > 0.5:  # Rerun every 0.5 seconds
             st.session_state.last_rerun_time = time.time()
-            st.rerun()
+            st.experimental_rerun()
     
     if execute and command.strip():
         try:
@@ -141,7 +141,7 @@ def terminal_page():
             )
             
             # Force immediate rerun to start showing output
-            st.rerun()
+            st.experimental_rerun()
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
     elif execute:
@@ -181,11 +181,11 @@ def main():
         # Navigation buttons
         if st.button("Terminal", key="nav_terminal", use_container_width=True):
             st.session_state.page = 'terminal'
-            st.rerun()
+            st.experimental_rerun()
             
         if st.button("Command Groups", key="nav_cmd_groups", use_container_width=True):
             st.session_state.page = 'command_groups'
-            st.rerun()
+            st.experimental_rerun()
             
         st.markdown("---")
         

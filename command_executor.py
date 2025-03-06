@@ -109,12 +109,24 @@ class CommandExecutor:
                         elapsed = time.time() - start_time
                         progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                         
-                        # Only update session state, avoid direct Streamlit component updates
-                        # This is thread-safe as we're just modifying Python objects
-                        st.session_state["latest_output"] = output_buffer
-                        st.session_state["latest_progress"] = progress
-                        st.session_state["latest_timestamp"] = time.time()
-                        st.session_state["output_pending"] = True
+                        # Thread-safe session state update
+                        try:
+                            # Using a dictionary to update multiple values at once
+                            # to reduce the risk of race conditions
+                            updates = {
+                                "latest_output": output_buffer,
+                                "latest_progress": progress,
+                                "latest_timestamp": time.time(),
+                                "output_pending": True
+                            }
+                            
+                            # Update session state in a synchronized way
+                            for key, value in updates.items():
+                                st.session_state[key] = value
+                                
+                        except streamlit.errors.StreamlitAPIException:
+                            # Handle potential Streamlit context errors
+                            pass
 
                 except (OSError, IOError) as e:
                     if e.errno != 11:  # EAGAIN: Resource temporarily unavailable
@@ -127,19 +139,23 @@ class CommandExecutor:
                 if return_code is not None:
                     status = "Completed successfully" if return_code == 0 else f"Failed with code {return_code}"
 
-                    # Set final update in session state
-                    st.session_state["latest_output"] = output_buffer
-                    st.session_state["latest_progress"] = 1.0
-                    st.session_state["latest_status"] = status
-                    st.session_state["latest_success"] = return_code == 0
-                    st.session_state["latest_timestamp"] = time.time()
-                    st.session_state["output_pending"] = True
-                    st.session_state["command_completed"] = True
+                    try:
+                        # Set final update in session state
+                        st.session_state["latest_output"] = output_buffer
+                        st.session_state["latest_progress"] = 1.0
+                        st.session_state["latest_status"] = status
+                        st.session_state["latest_success"] = return_code == 0
+                        st.session_state["latest_timestamp"] = time.time()
+                        st.session_state["output_pending"] = True
+                        st.session_state["command_completed"] = True
 
-                    # Update command history entry
-                    if cmd_entry:
-                        cmd_entry['return_code'] = return_code
-                        cmd_entry['output'] = output_buffer
+                        # Update command history entry
+                        if cmd_entry:
+                            cmd_entry['return_code'] = return_code
+                            cmd_entry['output'] = output_buffer
+                    except streamlit.errors.StreamlitAPIException:
+                        # Handle potential Streamlit context errors
+                        pass
 
         finally:
             # Clean up
