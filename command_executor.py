@@ -95,33 +95,46 @@ class CommandExecutor:
                 self._output_queue.put(('progress', 1.0))
 
         def update_ui():
-            while self._is_running or not self._output_queue.empty():
-                try:
-                    msg_type, data = self._output_queue.get(timeout=0.1)
+            try:
+                while self._is_running or not self._output_queue.empty():
+                    try:
+                        msg_type, data = self._output_queue.get(timeout=0.1)
 
-                    if msg_type == 'output':
-                        output_container.code(data, language="bash")
-                    elif msg_type == 'progress':
-                        progress_bar.progress(data)
-                    elif msg_type == 'status':
-                        is_success, text = data
-                        if is_success:
-                            status_container.success(text)
-                        else:
-                            status_container.error(text)
-                    elif msg_type == 'error':
-                        output_container.error(data)
+                        if msg_type == 'output':
+                            with output_container:
+                                st.code(data, language="bash")
+                        elif msg_type == 'progress':
+                            with progress_bar:
+                                st.progress(data)
+                        elif msg_type == 'status':
+                            is_success, text = data
+                            with status_container:
+                                if is_success:
+                                    st.success(text)
+                                else:
+                                    st.error(text)
+                        elif msg_type == 'error':
+                            with output_container:
+                                st.error(data)
 
-                except Empty:
-                    continue
-                except Exception as e:
-                    output_container.error(f"UI Update Error: {str(e)}")
-                    time.sleep(0.1)
+                    except Empty:
+                        continue
+                    except Exception as e:
+                        with output_container:
+                            st.error(f"UI Update Error: {str(e)}")
+                        time.sleep(0.1)
+
+            except Exception as e:
+                with output_container:
+                    st.error(f"UI Thread Error: {str(e)}")
 
         # Clear previous output
-        output_container.empty()
-        status_container.empty()
-        progress_bar.progress(0.0)
+        with output_container:
+            st.empty()
+        with status_container:
+            st.empty()
+        with progress_bar:
+            st.progress(0.0)
 
         # Start command execution in separate threads
         command_thread = threading.Thread(target=run_command)
