@@ -160,3 +160,53 @@ def apply_styles():
     }
     </style>
     """, unsafe_allow_html=True)
+import streamlit as st
+
+def apply_styles():
+    # Apply custom CSS
+    st.markdown("""
+    <style>
+    /* Terminal-like styling */
+    .stTextInput input {
+        font-family: 'Courier New', monospace;
+        background-color: #0e1117;
+        color: #fff;
+        border: 1px solid #2e6f95;
+    }
+    
+    /* Command output styling */
+    pre {
+        background-color: #0e1117;
+        color: #cccccc;
+        border: 1px solid #2e6f95;
+        border-radius: 5px;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    /* Button styling */
+    .stButton button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+    }
+    
+    .stButton button:hover {
+        background-color: #2980b9;
+    }
+    
+    /* Success message styling */
+    .element-container .stSuccess {
+        background-color: #27ae60;
+    }
+    
+    /* Error message styling */
+    .element-container .stError {
+        background-color: #e74c3c;
+    }
+    </style>
+    """, unsafe_allow_html=True)

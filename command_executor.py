@@ -87,7 +87,7 @@ class CommandExecutor:
         """Monitor command output and update UI in real time."""
         output_buffer = ""
         start_time = time.time()
-        update_interval = 0.1  # Reduce UI update frequency to avoid context issues
+        update_interval = 0.2  # Slightly increased interval to reduce updates
 
         try:
             last_update_time = 0
@@ -100,7 +100,7 @@ class CommandExecutor:
                     # Add to buffer
                     output_buffer += data
 
-                    # Only update UI at specified intervals to reduce context switching issues
+                    # Only update session state at specified intervals
                     current_time = time.time()
                     if current_time - last_update_time >= update_interval:
                         last_update_time = current_time
@@ -109,19 +109,12 @@ class CommandExecutor:
                         elapsed = time.time() - start_time
                         progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                         
-                        # Use a direct session state approach for thread safety
+                        # Only update session state, avoid direct Streamlit component updates
+                        # This is thread-safe as we're just modifying Python objects
                         st.session_state["latest_output"] = output_buffer
                         st.session_state["latest_progress"] = progress
                         st.session_state["latest_timestamp"] = time.time()
                         st.session_state["output_pending"] = True
-                        
-                        # Also try direct updates as backup (but don't rely on them)
-                        try:
-                            output_placeholder.code(output_buffer, language="bash")
-                            progress_placeholder.progress(progress)
-                        except Exception:
-                            # Ignore any errors in direct updates
-                            pass
 
                 except (OSError, IOError) as e:
                     if e.errno != 11:  # EAGAIN: Resource temporarily unavailable
@@ -142,19 +135,6 @@ class CommandExecutor:
                     st.session_state["latest_timestamp"] = time.time()
                     st.session_state["output_pending"] = True
                     st.session_state["command_completed"] = True
-                    
-                    # Try direct updates as backup
-                    try:
-                        output_placeholder.code(output_buffer, language="bash")
-                        progress_placeholder.progress(1.0)
-                        
-                        if return_code == 0:
-                            status_placeholder.success(status)
-                        else:
-                            status_placeholder.error(status)
-                    except Exception:
-                        # Ignore any errors in direct updates
-                        pass
 
                     # Update command history entry
                     if cmd_entry:

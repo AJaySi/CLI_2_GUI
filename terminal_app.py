@@ -113,8 +113,13 @@ def terminal_page():
 
     # Add auto-rerun capability when command is running
     if st.session_state.command_executor.is_running():
-        # Force a rerun every 1 second to update UI with latest output
-        st.rerun()
+        # Force a rerun at a more controlled interval to update UI with latest output
+        if "last_rerun_time" not in st.session_state:
+            st.session_state.last_rerun_time = time.time()
+            st.rerun()
+        elif time.time() - st.session_state.last_rerun_time > 0.5:  # Rerun every 0.5 seconds
+            st.session_state.last_rerun_time = time.time()
+            st.rerun()
     
     if execute and command.strip():
         try:
