@@ -21,7 +21,7 @@ class CommandExecutor:
             output_text = []
 
             try:
-                # Create process with pipe for output
+                # Create process with pipe for output and specific shell
                 process = subprocess.Popen(
                     command,
                     shell=True,
@@ -29,41 +29,39 @@ class CommandExecutor:
                     stderr=subprocess.PIPE,
                     text=True,
                     bufsize=1,
-                    universal_newlines=True
+                    universal_newlines=True,
+                    executable='/bin/bash'  # Explicitly specify bash
                 )
 
                 self._current_process = process
 
-                # Read output in real-time
-                while True:
-                    # Check if process has finished
-                    if process.poll() is not None:
-                        remaining_stdout, remaining_stderr = process.communicate()
-                        if remaining_stdout:
-                            output_text.append(remaining_stdout.strip())
+                # Non-blocking output reading
+                def read_output(pipe, is_error=False):
+                    while True:
+                        line = pipe.readline()
+                        if not line and process.poll() is not None:
+                            break
+                        if line:
+                            prefix = "ERROR: " if is_error else ""
+                            output_text.append(f"{prefix}{line.strip()}")
                             self._output_queue.put(('output', '\n'.join(output_text)))
-                        if remaining_stderr:
-                            output_text.append(f"ERROR: {remaining_stderr.strip()}")
-                            self._output_queue.put(('output', '\n'.join(output_text)))
-                        break
 
-                    # Read available output
-                    stdout_line = process.stdout.readline()
-                    stderr_line = process.stderr.readline()
+                # Start output reader threads
+                stdout_thread = threading.Thread(target=read_output, args=(process.stdout,))
+                stderr_thread = threading.Thread(target=read_output, args=(process.stderr, True))
 
-                    if stdout_line:
-                        output_text.append(stdout_line.strip())
-                        self._output_queue.put(('output', '\n'.join(output_text)))
+                stdout_thread.start()
+                stderr_thread.start()
 
-                    if stderr_line:
-                        output_text.append(f"ERROR: {stderr_line.strip()}")
-                        self._output_queue.put(('output', '\n'.join(output_text)))
-
-                    # Update progress
+                # Monitor process and update progress
+                while process.poll() is None:
                     elapsed_time = time.time() - start_time
                     self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
+                    time.sleep(0.1)
 
-                    time.sleep(0.1)  # Small delay to prevent CPU overuse
+                # Wait for output threads to complete
+                stdout_thread.join()
+                stderr_thread.join()
 
                 # Get return code and update status
                 return_code = process.poll()
