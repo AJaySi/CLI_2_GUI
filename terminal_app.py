@@ -4,6 +4,9 @@ import time
 from datetime import datetime
 from command_executor import CommandExecutor
 
+# Enable Streamlit to share application state across reruns
+st.cache_resource.clear()
+
 # Make sure set_page_config is the very first Streamlit command
 st.set_page_config(
     page_title="Web Terminal",
