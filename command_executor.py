@@ -2,6 +2,7 @@ import subprocess
 import threading
 import time
 import streamlit as st
+import streamlit.errors
 from datetime import datetime
 from queue import Queue, Empty
 import pty
@@ -104,7 +105,7 @@ class CommandExecutor:
                         elapsed = time.time() - start_time
                         progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                         progress_placeholder.progress(progress)
-                    except Exception as e:
+                    except (Exception, streamlit.errors.NoSessionContext) as e:
                         # Silently handle streamlit context errors in threads
                         pass
 
@@ -118,17 +119,23 @@ class CommandExecutor:
                 return_code = self.process.poll()
                 if return_code is not None:
                     status = "Completed successfully" if return_code == 0 else f"Failed with code {return_code}"
-                    if return_code == 0:
-                        status_placeholder.success(status)
-                    else:
-                        status_placeholder.error(status)
+                    
+                    # Try to update status using placeholders, but handle context errors
+                    try:
+                        if return_code == 0:
+                            status_placeholder.success(status)
+                        else:
+                            status_placeholder.error(status)
+                        
+                        # Set final progress
+                        progress_placeholder.progress(1.0)
+                    except (Exception, streamlit.errors.NoSessionContext) as e:
+                        # Silently handle streamlit context errors in threads
+                        pass
 
                     # Update command history entry
                     if cmd_entry:
                         cmd_entry['return_code'] = return_code
-
-                    # Set final progress
-                    progress_placeholder.progress(1.0)
 
         finally:
             # Clean up
