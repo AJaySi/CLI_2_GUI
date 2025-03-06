@@ -3,7 +3,6 @@ import streamlit as st
 import time
 from datetime import datetime
 from command_executor import CommandExecutor
-from styles import apply_styles
 
 # Make sure set_page_config is the very first Streamlit command
 st.set_page_config(
@@ -11,6 +10,9 @@ st.set_page_config(
     page_icon="🖥️",
     layout="wide"
 )
+
+# Import styles after st.set_page_config
+from styles import apply_styles
 
 def initialize_session_state():
     if 'command_history' not in st.session_state:
