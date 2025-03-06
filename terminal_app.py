@@ -1,3 +1,4 @@
+
 import streamlit as st
 import time
 from datetime import datetime
@@ -18,12 +19,14 @@ def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def main():
+    # Set page config must be the first Streamlit command
     st.set_page_config(
         page_title="Web Terminal",
         page_icon="🖥️",
         layout="wide"
     )
 
+    # Apply styles after page config
     apply_styles()
     initialize_session_state()
 

@@ -13,248 +13,153 @@ import struct
 
 class CommandExecutor:
     def __init__(self):
-        self._current_process = None
-        self._is_running = False
-        self._output_queue = Queue()
-        self._input_queue = Queue()
-        self._interactive_mode = False
-        self._master_fd = None
-        self._slave_fd = None
+        self.process = None
+        self.interactive = False
+        self.output_queue = Queue()
+        self.master_fd = None
+        self.slave_fd = None
 
     def is_running(self):
-        return self._is_running
+        return self.process is not None and self.process.poll() is None
 
     def is_interactive(self):
-        return self._interactive_mode
+        return self.is_running() and self.interactive
 
-    def send_input(self, input_text):
-        """Send input to the running interactive process"""
-        if self._interactive_mode and self._master_fd:
-            input_bytes = (input_text + '\n').encode()
-            try:
-                # Add input to output as user input marker
-                self._output_queue.put(('output', '\n'.join([line for line in self._output_queue.queue 
-                                                             if isinstance(line, tuple) and line[0] == 'output' 
-                                                             and len(line) > 1 and isinstance(line[1], str)
-                                                             and line[1]][-1] if self._output_queue.queue else '') + f"\n>>> {input_text}"))
-                # Write to the process stdin
-                os.write(self._master_fd, input_bytes)
-            except OSError as e:
-                self._output_queue.put(('error', f"Failed to send input to process: {str(e)}"))
+    def execute_command(self, command, output_placeholder, progress_placeholder, status_placeholder, cmd_entry=None):
+        """Execute a shell command with real-time output and potential interactivity."""
+        if self.is_running():
+            status_placeholder.error("A command is already running. Please wait or stop it.")
+            return
 
-    def execute_command(self, command, output_container, progress_bar, status_container, cmd_entry):
-        def run_command():
-            self._is_running = True
-            start_time = time.time()
-            output_text = []
+        # Create a pseudoterminal pair
+        self.master_fd, self.slave_fd = pty.openpty()
 
-            try:
-                # Check if command might be interactive
-                interactive_commands = ['python', 'python3', 'ipython', 'node', 'mysql']
-                self._interactive_mode = any(cmd in command.split()[0] for cmd in interactive_commands)
+        # Set non-blocking mode for master fd
+        flags = fcntl.fcntl(self.master_fd, fcntl.F_GETFL)
+        fcntl.fcntl(self.master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-                if self._interactive_mode:
-                    try:
-                        # Create pseudo-terminal
-                        self._master_fd, self._slave_fd = pty.openpty()
+        # Start the command
+        try:
+            self.process = subprocess.Popen(
+                command,
+                shell=True,
+                stdin=self.slave_fd,
+                stdout=self.slave_fd,
+                stderr=self.slave_fd,
+                close_fds=True,
+                universal_newlines=True,
+                preexec_fn=os.setsid
+            )
 
-                        # Set terminal size
-                        term_size = struct.pack('HHHH', 24, 80, 0, 0)
-                        fcntl.ioctl(self._slave_fd, termios.TIOCSWINSZ, term_size)
+            # Close the slave fd in this process as the child process has it
+            os.close(self.slave_fd)
+            self.slave_fd = None
 
-                        # Set non-blocking mode for master fd
-                        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
-                        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+            # Show initial status
+            status_placeholder.info(f"Command started: {command}")
+            progress_placeholder.progress(0)
 
-                        # Start process with PTY
-                        process = subprocess.Popen(
-                            command.split(),
-                            stdin=self._slave_fd,
-                            stdout=self._slave_fd,
-                            stderr=self._slave_fd,
-                            close_fds=True
-                        )
+            # Start output monitoring in a separate thread
+            self.output_thread = threading.Thread(
+                target=self._monitor_output,
+                args=(self.master_fd, output_placeholder, progress_placeholder, status_placeholder, cmd_entry),
+                daemon=True
+            )
+            self.output_thread.start()
 
-                        self._current_process = process
-                        buffer = ""
+            # Check if command might be interactive
+            interactive_commands = ['python', 'python3', 'ipython', 'node', 'bash', 'sh', 'mysql', 'psql', 'mongo']
+            self.interactive = any(cmd in command.split() for cmd in interactive_commands)
 
-                        while process.poll() is None:
-                            try:
-                                # Check for input/output
-                                r, w, e = select.select([self._master_fd], [], [], 0.1)
-
-                                if self._master_fd in r:
-                                    try:
-                                        data = os.read(self._master_fd, 1024).decode(errors='replace')
-                                        if data:
-                                            buffer += data
-                                            lines = buffer.split('\n')
-                                            # Keep the last partial line in buffer
-                                            buffer = lines[-1]
-                                            # Process complete lines
-                                            for line in lines[:-1]:
-                                                output_text.append(line)
-                                            # Update the output even if lines are empty to show prompts
-                                            self._output_queue.put(('output', '\n'.join(output_text)))
-                                    except OSError as e:
-                                        if e.errno != 11:  # Ignore "Resource temporarily unavailable"
-                                            raise
-
-                                # Update progress periodically
-                                elapsed_time = time.time() - start_time
-                                self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
-
-                            except (OSError, IOError) as e:
-                                if e.errno == 5:  # Input/output error, possibly due to closed PTY
-                                    break
-                                self._output_queue.put(('error', f"PTY Error: {str(e)}"))
-                                break
-
-                        # Process any remaining buffer
-                        if buffer.strip():
-                            output_text.append(buffer.strip())
-                            self._output_queue.put(('output', '\n'.join(output_text)))
-
-                    except Exception as e:
-                        self._output_queue.put(('error', f"Interactive mode error: {str(e)}"))
-                        self._interactive_mode = False
-                        
-                    # Add a message to indicate interactive mode is active
-                    if self._interactive_mode:
-                        self._output_queue.put(('status', (True, "Interactive session active. Use the Interactive Input field below to communicate with the process.")))
-
-                else:
-                    # Non-interactive command handling
-                    process = subprocess.Popen(
-                        command,
-                        shell=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True,
-                        bufsize=1,
-                        universal_newlines=True
-                    )
-
-                    self._current_process = process
-
-                    def read_output(pipe, is_error=False):
-                        while True:
-                            line = pipe.readline()
-                            if not line and process.poll() is not None:
-                                break
-                            if line:
-                                prefix = "ERROR: " if is_error else ""
-                                output_text.append(f"{prefix}{line.strip()}")
-                                self._output_queue.put(('output', '\n'.join(output_text)))
-
-                    stdout_thread = threading.Thread(target=read_output, args=(process.stdout,))
-                    stderr_thread = threading.Thread(target=read_output, args=(process.stderr, True))
-
-                    stdout_thread.start()
-                    stderr_thread.start()
-
-                    while process.poll() is None:
-                        elapsed_time = time.time() - start_time
-                        self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
-                        time.sleep(0.1)
-
-                    stdout_thread.join()
-                    stderr_thread.join()
-
-                # Get return code and update status
-                return_code = process.poll()
-                cmd_entry['return_code'] = return_code
-
-                # Final status update
-                execution_time = time.time() - start_time
-                if self._interactive_mode:
-                    status_text = "Interactive session ended"
-                else:
-                    status_text = (
-                        f"Command completed (Return code: {return_code})\n"
-                        f"Execution time: {execution_time:.2f} seconds"
-                    )
-
-                self._output_queue.put(('status', (return_code == 0, status_text)))
-
-            except Exception as e:
-                error_msg = f"Error executing command: {str(e)}"
-                self._output_queue.put(('error', error_msg))
+        except Exception as e:
+            if self.master_fd:
+                os.close(self.master_fd)
+                self.master_fd = None
+            if self.slave_fd:
+                os.close(self.slave_fd)
+                self.slave_fd = None
+            status_placeholder.error(f"Error executing command: {str(e)}")
+            if cmd_entry:
                 cmd_entry['return_code'] = -1
 
-            finally:
-                # Clean up PTY resources
-                if self._interactive_mode:
-                    if self._master_fd:
-                        try:
-                            os.close(self._master_fd)
-                        except:
-                            pass
-                    if self._slave_fd:
-                        try:
-                            os.close(self._slave_fd)
-                        except:
-                            pass
-                    self._master_fd = None
-                    self._slave_fd = None
-                    self._interactive_mode = False
+    def _monitor_output(self, master_fd, output_placeholder, progress_placeholder, status_placeholder, cmd_entry=None):
+        """Monitor command output and update UI in real time."""
+        output_buffer = ""
+        start_time = time.time()
 
-                # Clean up process
-                if self._current_process:
-                    try:
-                        self._current_process.terminate()
-                        self._current_process.wait(timeout=1)
-                    except:
-                        pass
-                self._is_running = False
-                self._current_process = None
-                self._output_queue.put(('progress', 1.0))
+        try:
+            while self.is_running() or select.select([master_fd], [], [], 0)[0]:
+                try:
+                    data = os.read(master_fd, 1024).decode('utf-8', errors='replace')
+                    if not data:
+                        break
 
-        def update_ui():
-            try:
-                while self._is_running or not self._output_queue.empty():
-                    try:
-                        msg_type, data = self._output_queue.get(timeout=0.1)
+                    # Add to buffer and update display
+                    output_buffer += data
+                    output_placeholder.code(output_buffer, language="bash")
 
-                        if msg_type == 'output':
-                            output_container.markdown(f"```python\n{data}\n```")
-                        elif msg_type == 'progress':
-                            progress_bar.progress(data)
-                        elif msg_type == 'status':
-                            is_success, text = data
-                            if is_success:
-                                status_container.success(text)
-                            else:
-                                status_container.error(text)
-                        elif msg_type == 'error':
-                            output_container.error(data)
+                    # Update progress bar (simulation)
+                    elapsed = time.time() - start_time
+                    progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
+                    progress_placeholder.progress(progress)
 
-                    except Empty:
-                        continue
-                    except Exception as e:
-                        output_container.error(f"UI Update Error: {str(e)}")
-                        time.sleep(0.1)
+                except (OSError, IOError) as e:
+                    if e.errno != 11:  # EAGAIN: Resource temporarily unavailable
+                        break
+                    time.sleep(0.1)
 
-            except Exception as e:
-                output_container.error(f"UI Thread Error: {str(e)}")
+            # Command completed, get return code
+            if self.process:
+                return_code = self.process.poll()
+                if return_code is not None:
+                    status = "Completed successfully" if return_code == 0 else f"Failed with code {return_code}"
+                    if return_code == 0:
+                        status_placeholder.success(status)
+                    else:
+                        status_placeholder.error(status)
 
-        # Clear previous output
-        output_container.empty()
-        status_container.empty()
-        progress_bar.progress(0.0)
+                    # Update command history entry
+                    if cmd_entry:
+                        cmd_entry['return_code'] = return_code
 
-        # Start command execution in separate thread
-        command_thread = threading.Thread(target=run_command)
-        command_thread.start()
+                    # Set final progress
+                    progress_placeholder.progress(1.0)
 
-        # Update UI in the main thread
-        update_ui()
+        finally:
+            # Clean up
+            if master_fd:
+                os.close(master_fd)
+                self.master_fd = None
+            self.process = None
+            self.interactive = False
+
+    def send_input(self, input_text):
+        """Send input to the running interactive process."""
+        if not self.is_running() or not self.interactive or not self.master_fd:
+            return False
+
+        try:
+            # Ensure input ends with newline
+            if not input_text.endswith('\n'):
+                input_text += '\n'
+
+            # Write to the master fd
+            os.write(self.master_fd, input_text.encode('utf-8'))
+            return True
+        except Exception as e:
+            st.error(f"Failed to send input: {str(e)}")
+            return False
 
     def terminate_current_process(self):
-        if self._current_process and self._is_running:
+        """Terminate the currently running process."""
+        if self.is_running():
             try:
-                self._current_process.terminate()
-                self._current_process.wait(timeout=1)
-            except:
-                pass
-            self._is_running = False
+                # Send SIGTERM to process group
+                os.killpg(os.getpgid(self.process.pid), 15)
+                # Wait a bit to see if it terminates
+                time.sleep(0.5)
+                # If still running, force kill
+                if self.is_running():
+                    os.killpg(os.getpgid(self.process.pid), 9)
+            except Exception as e:
+                st.error(f"Failed to terminate process: {str(e)}")
