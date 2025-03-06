@@ -99,47 +99,38 @@ class CommandExecutor:
                         msg_type, data = self._output_queue.get(timeout=0.1)
 
                         if msg_type == 'output':
-                            with output_container:
-                                st.code(data, language="bash")
+                            output_container.markdown(f"```bash\n{data}\n```")
                         elif msg_type == 'progress':
-                            with progress_bar:
-                                st.progress(data)
+                            progress_bar.progress(data)
                         elif msg_type == 'status':
                             is_success, text = data
-                            with status_container:
-                                if is_success:
-                                    st.success(text)
-                                else:
-                                    st.error(text)
+                            if is_success:
+                                status_container.success(text)
+                            else:
+                                status_container.error(text)
                         elif msg_type == 'error':
-                            with output_container:
-                                st.error(data)
+                            output_container.error(data)
 
                     except Empty:
                         continue
                     except Exception as e:
-                        with output_container:
-                            st.error(f"UI Update Error: {str(e)}")
+                        output_container.error(f"UI Update Error: {str(e)}")
                         time.sleep(0.1)
 
             except Exception as e:
-                with output_container:
-                    st.error(f"UI Thread Error: {str(e)}")
+                output_container.error(f"UI Thread Error: {str(e)}")
 
         # Clear previous output
-        with output_container:
-            st.empty()
-        with status_container:
-            st.empty()
-        with progress_bar:
-            st.progress(0.0)
+        output_container.empty()
+        status_container.empty()
+        progress_bar.progress(0.0)
 
-        # Start command execution in separate threads
+        # Start command execution in separate thread
         command_thread = threading.Thread(target=run_command)
-        ui_thread = threading.Thread(target=update_ui)
-
         command_thread.start()
-        ui_thread.start()
+
+        # Update UI in the main thread
+        update_ui()
 
     def terminate_current_process(self):
         if self._current_process and self._is_running:

@@ -28,21 +28,23 @@ def main():
     # Sidebar with command history
     with st.sidebar:
         st.title("Command History")
-        for cmd in st.session_state.command_history:
-            st.text(f"[{cmd['timestamp']}] {cmd['command']}")
-            if cmd.get('return_code') is not None:
-                status = "✅" if cmd['return_code'] == 0 else "❌"
-                st.text(f"Status: {status} (Return code: {cmd['return_code']})")
-            st.markdown("---")
+        if st.session_state.command_history:
+            for cmd in reversed(st.session_state.command_history):
+                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
+                if cmd.get('return_code') is not None:
+                    status = "✅" if cmd['return_code'] == 0 else "❌"
+                    st.text(f"Status: {status} (Return code: {cmd['return_code']})")
+                st.markdown("---")
 
     # Main terminal interface
     st.title("Web Terminal")
+    st.markdown("Enter commands below to execute them. Use the sidebar to view command history.")
 
     # Command input
     command = st.text_input(
         "Enter command:",
         key="command_input",
-        placeholder="Type your command here...",
+        placeholder="Type your command here (e.g., ls, pwd, echo 'hello')",
         help="Enter a valid shell command to execute"
     )
 
@@ -58,11 +60,12 @@ def main():
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
 
-    if execute:
-        if not command.strip():
-            st.error("Please enter a command")
-            return
+    # Main output area
+    output_placeholder = st.empty()
+    progress_placeholder = st.empty()
+    status_placeholder = st.empty()
 
+    if execute and command.strip():
         try:
             # Add command to history
             cmd_entry = {
@@ -72,25 +75,18 @@ def main():
             }
             st.session_state.command_history.append(cmd_entry)
 
-            # Create output containers
-            output_container = st.empty()
-            progress_bar = st.progress(0)
-            status_container = st.empty()
-
-            # Start command execution
+            # Execute command
             st.session_state.command_executor.execute_command(
                 command,
-                output_container,
-                progress_bar,
-                status_container,
+                output_placeholder,
+                progress_placeholder,
+                status_placeholder,
                 cmd_entry
             )
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
-
-    # Display current execution status
-    if st.session_state.command_executor.is_running():
-        st.info("Command is currently running...")
+    elif execute:
+        st.error("Please enter a command")
 
 if __name__ == "__main__":
     main()
