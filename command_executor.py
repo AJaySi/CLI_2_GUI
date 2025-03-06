@@ -33,6 +33,8 @@ class CommandExecutor:
             input_bytes = (input_text + '\n').encode()
             try:
                 os.write(self._master_fd, input_bytes)
+                # Add the input to the output display for better feedback
+                self._output_queue.put(('output', f">>> {input_text}\n"))
             except OSError:
                 self._output_queue.put(('error', "Failed to send input to process"))
 
@@ -67,18 +69,35 @@ class CommandExecutor:
 
                         self._current_process = process
 
+                        # Set non-blocking mode for master fd
+                        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
+                        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
                         # Read output from pseudo-terminal
+                        buffer = ""
                         while True:
                             try:
                                 r, w, e = select.select([self._master_fd], [], [], 0.1)
                                 if self._master_fd in r:
-                                    data = os.read(self._master_fd, 1024).decode(errors='replace')
-                                    if data:
-                                        output_text.append(data)
-                                        self._output_queue.put(('output', ''.join(output_text)))
+                                    try:
+                                        data = os.read(self._master_fd, 1024).decode(errors='replace')
+                                        if data:
+                                            buffer += data
+                                            # Process buffer line by line
+                                            while '\n' in buffer:
+                                                line, buffer = buffer.split('\n', 1)
+                                                output_text.append(line)
+                                                self._output_queue.put(('output', '\n'.join(output_text)))
+                                    except OSError as e:
+                                        if e.errno == 11:  # Resource temporarily unavailable
+                                            continue
+                                        raise
 
                                 # Check if process has ended
                                 if process.poll() is not None:
+                                    if buffer:  # Flush remaining buffer
+                                        output_text.append(buffer)
+                                        self._output_queue.put(('output', '\n'.join(output_text)))
                                     break
 
                             except (OSError, IOError) as e:
@@ -193,7 +212,7 @@ class CommandExecutor:
                         msg_type, data = self._output_queue.get(timeout=0.1)
 
                         if msg_type == 'output':
-                            output_container.markdown(f"```bash\n{data}\n```")
+                            output_container.markdown(f"```python\n{data}\n```")
                         elif msg_type == 'progress':
                             progress_bar.progress(data)
                         elif msg_type == 'status':
