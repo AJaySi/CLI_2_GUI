@@ -59,17 +59,23 @@ def apply_styles():
             border-radius: 4px;
             margin-bottom: 0.5rem;
         }
+        
+        /* Improve output visibility */
+        code {
+            background-color: #1e1e1e;
+            color: #f8f8f8;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: block;
+            overflow-x: auto;
+        }
+        
+        /* Make progress bar more visible */
+        .stProgress > div > div {
+            height: 10px !important;
+        }
     </style>
     """, unsafe_allow_html=True)
-
-apply_styles()
-
-# Rest of your Streamlit app code would go here...  This is a placeholder.
-st.title("Interactive Python Terminal")
-command = st.text_input("Enter command:")
-if st.button("Execute"):
-    try:
-        exec(command) #This is a very basic example and should be improved for security and error handling
-        st.success("Command executed successfully!")
-    except Exception as e:
-        st.error(f"Error executing command: {e}")

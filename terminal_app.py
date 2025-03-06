@@ -89,10 +89,19 @@ def main():
                 # Clear the input field after sending
                 st.session_state.interactive_input = ""
 
-    # Main output area
-    output_placeholder = st.empty()
-    progress_placeholder = st.empty()
-    status_placeholder = st.empty()
+    # Main output area - create containers to ensure visibility
+    st.markdown("### Command Output")
+    output_container = st.container()
+    with output_container:
+        output_placeholder = st.empty()
+    
+    progress_container = st.container()
+    with progress_container:
+        progress_placeholder = st.empty()
+    
+    status_container = st.container()
+    with status_container:
+        status_placeholder = st.empty()
 
     if execute and command.strip():
         try:

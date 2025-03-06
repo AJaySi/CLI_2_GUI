@@ -99,12 +99,16 @@ class CommandExecutor:
                     output_buffer += data
                     # Use try/except to handle potential NoSessionContext errors
                     try:
+                        # Force code display with specific formatting
                         output_placeholder.code(output_buffer, language="bash")
                         
-                        # Update progress bar (simulation)
+                        # Update progress bar with more visible progress
                         elapsed = time.time() - start_time
                         progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                         progress_placeholder.progress(progress)
+                        
+                        # Short sleep to ensure UI updates
+                        time.sleep(0.05)
                     except (Exception, streamlit.errors.NoSessionContext) as e:
                         # Silently handle streamlit context errors in threads
                         pass
