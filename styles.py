@@ -52,8 +52,6 @@ def apply_styles():
         .error {
             color: #ff0000 !important;
         }
-    </style>
-    """, unsafe_allow_html=True)
 
         .sidebar .element-container {
             background-color: #262730;
