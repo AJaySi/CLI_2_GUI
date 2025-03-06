@@ -32,9 +32,9 @@ class CommandExecutor:
         if self._interactive_mode and self._master_fd:
             input_bytes = (input_text + '\n').encode()
             try:
+                # Add input to output queue before sending
+                self._output_queue.put(('output', f">>> {input_text}"))
                 os.write(self._master_fd, input_bytes)
-                # Add the input to the output display for better feedback
-                self._output_queue.put(('output', f">>> {input_text}\n"))
             except OSError:
                 self._output_queue.put(('error', "Failed to send input to process"))
 
@@ -58,6 +58,10 @@ class CommandExecutor:
                         term_size = struct.pack('HHHH', 24, 80, 0, 0)
                         fcntl.ioctl(self._slave_fd, termios.TIOCSWINSZ, term_size)
 
+                        # Set non-blocking mode for master fd
+                        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
+                        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
                         # Start process with PTY
                         process = subprocess.Popen(
                             command.split(),
@@ -68,37 +72,33 @@ class CommandExecutor:
                         )
 
                         self._current_process = process
-
-                        # Set non-blocking mode for master fd
-                        flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
-                        fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-                        # Read output from pseudo-terminal
                         buffer = ""
-                        while True:
+
+                        while process.poll() is None:
                             try:
+                                # Check for input/output
                                 r, w, e = select.select([self._master_fd], [], [], 0.1)
+
                                 if self._master_fd in r:
                                     try:
                                         data = os.read(self._master_fd, 1024).decode(errors='replace')
                                         if data:
                                             buffer += data
-                                            # Process buffer line by line
-                                            while '\n' in buffer:
-                                                line, buffer = buffer.split('\n', 1)
-                                                output_text.append(line)
-                                                self._output_queue.put(('output', '\n'.join(output_text)))
+                                            lines = buffer.split('\n')
+                                            # Keep the last partial line in buffer
+                                            buffer = lines[-1]
+                                            # Process complete lines
+                                            for line in lines[:-1]:
+                                                if line.strip():
+                                                    output_text.append(line)
+                                                    self._output_queue.put(('output', '\n'.join(output_text)))
                                     except OSError as e:
-                                        if e.errno == 11:  # Resource temporarily unavailable
-                                            continue
-                                        raise
+                                        if e.errno != 11:  # Ignore "Resource temporarily unavailable"
+                                            raise
 
-                                # Check if process has ended
-                                if process.poll() is not None:
-                                    if buffer:  # Flush remaining buffer
-                                        output_text.append(buffer)
-                                        self._output_queue.put(('output', '\n'.join(output_text)))
-                                    break
+                                # Update progress periodically
+                                elapsed_time = time.time() - start_time
+                                self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
 
                             except (OSError, IOError) as e:
                                 if e.errno == 5:  # Input/output error, possibly due to closed PTY
@@ -106,20 +106,14 @@ class CommandExecutor:
                                 self._output_queue.put(('error', f"PTY Error: {str(e)}"))
                                 break
 
+                        # Process any remaining buffer
+                        if buffer.strip():
+                            output_text.append(buffer.strip())
+                            self._output_queue.put(('output', '\n'.join(output_text)))
+
                     except Exception as e:
                         self._output_queue.put(('error', f"Interactive mode error: {str(e)}"))
                         self._interactive_mode = False
-                        # Fall back to non-interactive mode
-                        process = subprocess.Popen(
-                            command,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True,
-                            bufsize=1,
-                            universal_newlines=True
-                        )
-                        self._current_process = process
 
                 else:
                     # Non-interactive command handling
@@ -165,10 +159,13 @@ class CommandExecutor:
 
                 # Final status update
                 execution_time = time.time() - start_time
-                status_text = (
-                    f"Command completed (Return code: {return_code})\n"
-                    f"Execution time: {execution_time:.2f} seconds"
-                )
+                if self._interactive_mode:
+                    status_text = "Interactive session ended"
+                else:
+                    status_text = (
+                        f"Command completed (Return code: {return_code})\n"
+                        f"Execution time: {execution_time:.2f} seconds"
+                    )
 
                 self._output_queue.put(('status', (return_code == 0, status_text)))
 
