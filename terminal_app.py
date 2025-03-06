@@ -3,6 +3,7 @@ import streamlit as st
 import time
 from datetime import datetime
 from command_executor import CommandExecutor
+import command_groups
 
 # Enable Streamlit to share application state across reruns
 st.cache_resource.clear()
@@ -26,29 +27,16 @@ def initialize_session_state():
         st.session_state.current_command = None
     if 'last_interactive_input' not in st.session_state:
         st.session_state.last_interactive_input = ''
+    if 'page' not in st.session_state:
+        st.session_state.page = 'terminal'
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def main():
-    # Apply styles after page config
-    apply_styles()
-    initialize_session_state()
-    
+def terminal_page():
     # Initialize output updates queue if needed
     if 'output_updates' not in st.session_state:
         st.session_state.output_updates = []
-
-    # Sidebar with command history
-    with st.sidebar:
-        st.title("Command History")
-        if st.session_state.command_history:
-            for cmd in reversed(st.session_state.command_history):
-                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
-                if cmd.get('return_code') is not None:
-                    status = "✅" if cmd['return_code'] == 0 else "❌"
-                    st.text(f"Status: {status} (Return code: {cmd['return_code']})")
-                st.markdown("---")
 
     # Main terminal interface
     st.title("Web Terminal")
@@ -175,6 +163,42 @@ def main():
                 st.session_state["command_completed"] = False
         
         # Keep output pending flag true to ensure output remains visible
+
+def main():
+    # Apply styles after page config
+    apply_styles()
+    initialize_session_state()
+    
+    # Sidebar with navigation and command history
+    with st.sidebar:
+        st.title("Navigation")
+        
+        # Navigation buttons
+        if st.button("Terminal", key="nav_terminal", use_container_width=True):
+            st.session_state.page = 'terminal'
+            st.rerun()
+            
+        if st.button("Command Groups", key="nav_cmd_groups", use_container_width=True):
+            st.session_state.page = 'command_groups'
+            st.rerun()
+            
+        st.markdown("---")
+        
+        # Command History section
+        st.title("Command History")
+        if st.session_state.command_history:
+            for cmd in reversed(st.session_state.command_history):
+                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
+                if cmd.get('return_code') is not None:
+                    status = "✅" if cmd['return_code'] == 0 else "❌"
+                    st.text(f"Status: {status} (Return code: {cmd['return_code']})")
+                st.markdown("---")
+    
+    # Display page based on selection
+    if st.session_state.page == 'terminal':
+        terminal_page()
+    else:
+        command_groups.run()
 
 if __name__ == "__main__":
     main()
