@@ -34,6 +34,10 @@ def main():
     # Apply styles after page config
     apply_styles()
     initialize_session_state()
+    
+    # Initialize output updates queue if needed
+    if 'output_updates' not in st.session_state:
+        st.session_state.output_updates = []
 
     # Sidebar with command history
     with st.sidebar:
@@ -69,6 +73,13 @@ def main():
             if stop:
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
+                
+    # Process any queued updates from background threads
+    if 'output_updates' in st.session_state and st.session_state.output_updates:
+        # Get the last update
+        latest_update = st.session_state.output_updates[-1]
+        # Clear queue after processing
+        st.session_state.output_updates = []
 
     # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
@@ -106,6 +117,11 @@ def main():
     with status_container:
         status_placeholder = st.empty()
 
+    # Add auto-rerun capability when command is running
+    if st.session_state.command_executor.is_running():
+        # Force a rerun every 1 second to update UI with latest output
+        st.rerun()
+    
     if execute and command.strip():
         try:
             # Add command to history
@@ -124,10 +140,26 @@ def main():
                 status_placeholder,
                 cmd_entry
             )
+            
+            # Force immediate rerun to start showing output
+            st.rerun()
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
     elif execute:
         st.error("Please enter a command")
+        
+    # Display any queued output from background threads
+    if 'output_updates' in st.session_state and st.session_state.output_updates and len(st.session_state.output_updates) > 0:
+        latest = st.session_state.output_updates[-1]
+        if 'output' in latest and latest['output']:
+            output_placeholder.code(latest['output'], language="bash")
+        if 'progress' in latest:
+            progress_placeholder.progress(latest['progress'])
+        if 'status' in latest:
+            if latest.get('success', False):
+                status_placeholder.success(latest['status'])
+            else:
+                status_placeholder.error(latest['status'])
 
 if __name__ == "__main__":
     main()

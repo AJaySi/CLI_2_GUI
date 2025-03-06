@@ -87,7 +87,22 @@ class CommandExecutor:
         """Monitor command output and update UI in real time."""
         output_buffer = ""
         start_time = time.time()
-        update_interval = 0.1  # Reduce UI update frequency to avoid context issues
+        update_interval = 0.2  # Slightly slower update frequency to reduce WebSocket load
+
+        # Create thread-local session state queue for updates
+        if not hasattr(st.session_state, 'output_updates'):
+            st.session_state.output_updates = []
+        
+        # Function to queue UI updates instead of direct updates
+        def queue_update(output, progress_value):
+            st.session_state.output_updates.append({
+                "output": output,
+                "progress": progress_value,
+                "timestamp": time.time()
+            })
+            # Limit queue size to avoid memory issues
+            if len(st.session_state.output_updates) > 100:
+                st.session_state.output_updates = st.session_state.output_updates[-100:]
 
         try:
             last_update_time = 0
@@ -100,23 +115,24 @@ class CommandExecutor:
                     # Add to buffer
                     output_buffer += data
                     
-                    # Only update UI at specified intervals to reduce context switching issues
+                    # Queue updates at specified intervals
                     current_time = time.time()
                     if current_time - last_update_time >= update_interval:
                         last_update_time = current_time
                         
-                        # Use try/except to handle potential NoSessionContext errors
+                        # Calculate progress
+                        elapsed = time.time() - start_time
+                        progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
+                        
+                        # Queue the update instead of directly updating UI
+                        queue_update(output_buffer, progress)
+                        
+                        # Also try direct update as fallback
                         try:
-                            # Force code display with specific formatting
                             output_placeholder.code(output_buffer, language="bash")
-                            
-                            # Update progress bar with more visible progress
-                            elapsed = time.time() - start_time
-                            progress = min(0.99, elapsed / 60)  # Max 60 seconds for full progress
                             progress_placeholder.progress(progress)
-                        except (Exception, streamlit.errors.NoSessionContext):
-                            # Silently handle streamlit context errors in threads
-                            pass
+                        except Exception:
+                            pass  # Silently ignore errors in direct updates
 
                 except (OSError, IOError) as e:
                     if e.errno != 11:  # EAGAIN: Resource temporarily unavailable
@@ -129,22 +145,32 @@ class CommandExecutor:
                 if return_code is not None:
                     status = "Completed successfully" if return_code == 0 else f"Failed with code {return_code}"
                     
-                    # Try to update status using placeholders, but handle context errors
+                    # Queue final update
+                    st.session_state.output_updates.append({
+                        "output": output_buffer,
+                        "progress": 1.0,
+                        "status": status,
+                        "success": return_code == 0,
+                        "timestamp": time.time()
+                    })
+                    
+                    # Also try direct updates
                     try:
+                        # Force one last output update
+                        output_placeholder.code(output_buffer, language="bash")
+                        progress_placeholder.progress(1.0)
+                        
                         if return_code == 0:
                             status_placeholder.success(status)
                         else:
                             status_placeholder.error(status)
-                        
-                        # Set final progress
-                        progress_placeholder.progress(1.0)
-                    except (Exception, streamlit.errors.NoSessionContext) as e:
-                        # Silently handle streamlit context errors in threads
+                    except Exception:
                         pass
-
+                    
                     # Update command history entry
                     if cmd_entry:
                         cmd_entry['return_code'] = return_code
+                        cmd_entry['output'] = output_buffer
 
         finally:
             # Clean up
