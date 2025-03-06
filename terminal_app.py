@@ -24,8 +24,8 @@ def initialize_session_state():
         st.session_state.command_executor = CommandExecutor()
     if 'current_command' not in st.session_state:
         st.session_state.current_command = None
-    if 'interactive_input' not in st.session_state:
-        st.session_state.interactive_input = ''
+    if 'last_interactive_input' not in st.session_state:
+        st.session_state.last_interactive_input = ''
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -96,12 +96,15 @@ def main():
         with col2:
             send_button = st.button("Send", key="send_input_button")
             
-        if (interactive_input and interactive_input != st.session_state.interactive_input) or send_button:
+        # Store the last input in a different session state variable
+        if 'last_interactive_input' not in st.session_state:
+            st.session_state.last_interactive_input = ""
+            
+        if (interactive_input and interactive_input != st.session_state.last_interactive_input) or send_button:
             if interactive_input:
-                st.session_state.interactive_input = interactive_input
+                st.session_state.last_interactive_input = interactive_input
                 st.session_state.command_executor.send_input(interactive_input)
-                # Clear the input field after sending
-                st.session_state.interactive_input = ""
+                # We can't clear the text_input directly, this will be handled on rerun
 
     # Main output area - create containers to ensure visibility
     st.markdown("### Command Output")
