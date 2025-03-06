@@ -11,6 +11,8 @@ def initialize_session_state():
         st.session_state.command_executor = CommandExecutor()
     if 'current_command' not in st.session_state:
         st.session_state.current_command = None
+    if 'interactive_input' not in st.session_state:
+        st.session_state.interactive_input = ''
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -44,7 +46,7 @@ def main():
     command = st.text_input(
         "Enter command:",
         key="command_input",
-        placeholder="Type your command here (e.g., ls, pwd, echo 'hello')",
+        placeholder="Type your command here (e.g., ls, pwd, python)",
         help="Enter a valid shell command to execute"
     )
 
@@ -59,6 +61,18 @@ def main():
             if stop:
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
+
+    # Interactive input section (only shown when in interactive mode)
+    if st.session_state.command_executor.is_interactive():
+        interactive_input = st.text_input(
+            "Interactive Input:",
+            key="interactive_input",
+            placeholder="Enter input for the running command...",
+            help="Type your input and press Enter to send it to the running command"
+        )
+        if interactive_input and interactive_input != st.session_state.interactive_input:
+            st.session_state.interactive_input = interactive_input
+            st.session_state.command_executor.send_input(interactive_input)
 
     # Main output area
     output_placeholder = st.empty()
