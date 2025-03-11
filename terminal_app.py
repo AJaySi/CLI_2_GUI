@@ -11,8 +11,8 @@ def initialize_session_state():
         st.session_state.command_history = []
     if 'command_executor' not in st.session_state:
         st.session_state.command_executor = CommandExecutor()
-    if 'output_text' not in st.session_state:
-        st.session_state.output_text = ''
+    if 'last_output' not in st.session_state:
+        st.session_state.last_output = ''
     if 'progress_value' not in st.session_state:
         st.session_state.progress_value = 0.0
 
@@ -20,24 +20,37 @@ def format_timestamp():
     """Return formatted current timestamp"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def process_command_output(output_placeholder, progress_placeholder, status_placeholder):
-    """Process command output from queue"""
+def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder):
+    """Update UI elements from command output queue"""
     try:
         while True:
             msg_type, data = st.session_state.command_executor._output_queue.get_nowait()
+
             if msg_type == 'output':
-                st.session_state.output_text = st.session_state.command_executor.get_output()
+                # Update output display
+                st.session_state.last_output = st.session_state.command_executor.get_output()
+                output_placeholder.code(st.session_state.last_output)
+
             elif msg_type == 'progress':
+                # Update progress bar
                 st.session_state.progress_value = data
+                if data > 0:
+                    progress_placeholder.progress(data)
+
             elif msg_type == 'status':
+                # Show status message
                 is_success, text = data
                 if is_success:
                     status_placeholder.success(text)
                 else:
                     status_placeholder.error(text)
+
             elif msg_type == 'error':
+                # Show error message
                 status_placeholder.error(data)
+
     except Empty:
+        # No more messages in queue
         pass
 
 def terminal_page():
@@ -53,7 +66,7 @@ def terminal_page():
         help="Enter a valid shell command to execute"
     )
 
-    # Execute and stop buttons in a row
+    # Execute and stop buttons
     col1, col2 = st.columns([1, 4])
     with col1:
         execute = st.button("Execute", key="execute_button", type="primary")
@@ -86,27 +99,26 @@ def terminal_page():
         if send or (interactive_input and interactive_input.strip()):
             st.session_state.command_executor.send_input(interactive_input)
 
-    # Main output area with spacing
+    # Output area
     st.markdown("### Command Output")
     output_placeholder = st.empty()
-    st.markdown("")  # Add some spacing
+    st.markdown("")  # Spacing
     progress_placeholder = st.empty()
-    st.markdown("")  # Add some spacing
+    st.markdown("")  # Spacing
     status_placeholder = st.empty()
 
-    # Execute command
+    # Execute command if requested
     if execute and command.strip():
         try:
             # Add command to history
             cmd_entry = {
                 'command': command,
-                'timestamp': format_timestamp(),
-                'return_code': None
+                'timestamp': format_timestamp()
             }
             st.session_state.command_history.append(cmd_entry)
 
-            # Clear previous output
-            st.session_state.output_text = ''
+            # Reset output state
+            st.session_state.last_output = ''
             st.session_state.progress_value = 0.0
 
             # Execute command
@@ -117,15 +129,15 @@ def terminal_page():
     elif execute:
         st.error("Please enter a command")
 
-    # Process and display output
+    # Update UI elements
     if st.session_state.command_executor.is_running():
-        process_command_output(output_placeholder, progress_placeholder, status_placeholder)
+        update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder)
         time.sleep(0.1)
         st.rerun()
 
     # Display current output
-    if st.session_state.output_text:
-        output_placeholder.code(st.session_state.output_text)
+    if st.session_state.last_output:
+        output_placeholder.code(st.session_state.last_output)
     if st.session_state.progress_value > 0:
         progress_placeholder.progress(st.session_state.progress_value)
 
@@ -149,9 +161,6 @@ def main():
         if st.session_state.command_history:
             for cmd in reversed(st.session_state.command_history):
                 st.text(f"[{cmd['timestamp']}] {cmd['command']}")
-                if cmd.get('return_code') is not None:
-                    status = "✅" if cmd['return_code'] == 0 else "❌"
-                    st.text(f"Status: {status} (Return code: {cmd['return_code']})")
                 st.markdown("---")
 
     # Main terminal page
