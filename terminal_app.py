@@ -2,7 +2,6 @@ import streamlit as st
 import time
 from datetime import datetime
 from command_executor import CommandExecutor
-from command_validator import CommandValidator
 from styles import apply_styles
 from queue import Empty
 
@@ -12,30 +11,14 @@ def initialize_session_state():
         st.session_state.command_history = []
     if 'command_executor' not in st.session_state:
         st.session_state.command_executor = CommandExecutor()
-    if 'command_validator' not in st.session_state:
-        st.session_state.command_validator = CommandValidator()
     if 'last_output' not in st.session_state:
         st.session_state.last_output = ''
     if 'progress_value' not in st.session_state:
         st.session_state.progress_value = 0.0
-    if 'validation_state' not in st.session_state:
-        st.session_state.validation_state = {'valid': True, 'message': '', 'suggestion': None}
 
 def format_timestamp():
     """Return formatted current timestamp"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-def validate_command(command: str) -> None:
-    """Validate command and update validation state"""
-    if command.strip():
-        is_valid, message, suggestion = st.session_state.command_validator.validate_command(command)
-        st.session_state.validation_state = {
-            'valid': is_valid,
-            'message': message,
-            'suggestion': suggestion
-        }
-    else:
-        st.session_state.validation_state = {'valid': True, 'message': '', 'suggestion': None}
 
 def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder):
     """Update UI elements from command output queue"""
@@ -82,28 +65,11 @@ def terminal_page():
             "Enter command",
             key="command_input",
             placeholder="Type your command here (e.g., ls, pwd, python)",
-            label_visibility="collapsed",
-            on_change=validate_command,
-            args=(st.session_state.get('command_input', ''),)
+            label_visibility="collapsed"
         )
 
     with col2:
-        execute = st.button(
-            "Execute",
-            key="execute_button",
-            type="primary",
-            use_container_width=True,
-            disabled=not st.session_state.validation_state['valid']
-        )
-
-    # Show validation feedback
-    if command:
-        if not st.session_state.validation_state['valid']:
-            st.error(st.session_state.validation_state['message'])
-            if st.session_state.validation_state['suggestion']:
-                st.info(st.session_state.validation_state['suggestion'])
-        elif not st.session_state.command_executor.is_running():
-            st.success(st.session_state.validation_state['message'])
+        execute = st.button("Execute", key="execute_button", type="primary", use_container_width=True)
 
     # Stop button (only shown when command is running)
     if st.session_state.command_executor.is_running():
