@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 from command_executor import CommandExecutor
 from styles import apply_styles
+from queue import Empty
 
 def initialize_session_state():
     """Initialize session state variables"""
@@ -18,6 +19,26 @@ def initialize_session_state():
 def format_timestamp():
     """Return formatted current timestamp"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def process_command_output(output_placeholder, progress_placeholder, status_placeholder):
+    """Process command output from queue"""
+    try:
+        while True:
+            msg_type, data = st.session_state.command_executor._output_queue.get_nowait()
+            if msg_type == 'output':
+                st.session_state.output_text = st.session_state.command_executor.get_output()
+            elif msg_type == 'progress':
+                st.session_state.progress_value = data
+            elif msg_type == 'status':
+                is_success, text = data
+                if is_success:
+                    status_placeholder.success(text)
+                else:
+                    status_placeholder.error(text)
+            elif msg_type == 'error':
+                status_placeholder.error(data)
+    except Empty:
+        pass
 
 def terminal_page():
     """Main terminal page"""
@@ -43,7 +64,7 @@ def terminal_page():
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
 
-    # Interactive input section (only shown when in interactive mode)
+    # Interactive input section
     if st.session_state.command_executor.is_interactive():
         st.info("🖥️ Interactive session active - Enter commands below")
 
@@ -55,14 +76,14 @@ def terminal_page():
                 "Interactive Input:",
                 key="interactive_input",
                 placeholder="Enter your command here...",
-                help="Type your command and press Enter or click Send to execute"
+                help="Type your command and press Enter or click Send"
             )
 
         with col2:
             send = st.button("Send", key="send_button")
 
         # Handle interactive input
-        if send or (interactive_input and st.session_state.get('interactive_input', '') != interactive_input):
+        if send or (interactive_input and interactive_input.strip()):
             st.session_state.command_executor.send_input(interactive_input)
 
     # Main output area with spacing
@@ -89,21 +110,17 @@ def terminal_page():
             st.session_state.progress_value = 0.0
 
             # Execute command
-            st.session_state.command_executor.execute_command(
-                command,
-                output_placeholder,
-                progress_placeholder,
-                status_placeholder,
-                cmd_entry
-            )
+            st.session_state.command_executor.execute_command(command)
+
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
     elif execute:
         st.error("Please enter a command")
 
-    # Update UI elements
+    # Process and display output
     if st.session_state.command_executor.is_running():
-        time.sleep(0.1)  # Small delay to prevent too frequent updates
+        process_command_output(output_placeholder, progress_placeholder, status_placeholder)
+        time.sleep(0.1)
         st.rerun()
 
     # Display current output

@@ -1,7 +1,6 @@
 import subprocess
 import threading
 import time
-import streamlit as st
 from datetime import datetime
 from queue import Queue, Empty
 import pty
@@ -19,7 +18,7 @@ class CommandExecutor:
         self._interactive = False
         self._master_fd = None
         self._slave_fd = None
-        self._output_buffer = ""
+        self._command_output = ""
 
     def is_running(self):
         return self._is_running
@@ -27,19 +26,16 @@ class CommandExecutor:
     def is_interactive(self):
         return self._interactive
 
+    def get_output(self):
+        """Get accumulated output"""
+        return self._command_output
+
     def _read_output(self, fd):
         """Read output from file descriptor"""
         try:
             data = os.read(fd, 1024).decode(errors='replace')
             if data:
-                # Process the output for better display
-                self._output_buffer += data
-                # Update the output in session state
-                if 'output_text' not in st.session_state:
-                    st.session_state.output_text = self._output_buffer
-                else:
-                    st.session_state.output_text = self._output_buffer
-                # Also send to queue for processing
+                self._command_output += data
                 self._output_queue.put(('output', data))
             return bool(data)
         except (OSError, IOError) as e:
@@ -56,10 +52,9 @@ class CommandExecutor:
             # Ensure input ends with newline
             if not input_text.endswith('\n'):
                 input_text += '\n'
-            # Add input to output buffer for display
-            self._output_buffer += f">>> {input_text}"
-            # Update session state
-            st.session_state.output_text = self._output_buffer
+            # Add input to output queue for display
+            self._command_output += f">>> {input_text}"
+            self._output_queue.put(('output', f">>> {input_text}"))
             # Send input to process
             os.write(self._master_fd, input_text.encode())
             return True
@@ -67,15 +62,14 @@ class CommandExecutor:
             self._output_queue.put(('error', f"Failed to send input: {str(e)}"))
             return False
 
-    def execute_command(self, command, output_placeholder, progress_bar, status_placeholder, cmd_entry=None):
+    def execute_command(self, command):
         """Execute a command with real-time output"""
         if self._is_running:
-            status_placeholder.error("A command is already running")
-            return
+            return False
 
         self._is_running = True
+        self._command_output = ""  # Reset output
         start_time = time.time()
-        self._output_buffer = ""  # Reset output buffer
 
         # Check if command might be interactive
         interactive_commands = ['python', 'python3', 'ipython', 'node', 'mysql']
@@ -101,7 +95,7 @@ class CommandExecutor:
                         stdin=self._slave_fd,
                         stdout=self._slave_fd,
                         stderr=self._slave_fd,
-                        preexec_fn=os.setsid
+                        env=os.environ.copy()
                     )
 
                     # Close slave fd in parent
@@ -139,16 +133,15 @@ class CommandExecutor:
                         # Read stdout
                         line = self._process.stdout.readline()
                         if line:
-                            self._output_buffer += line
-                            st.session_state.output_text = self._output_buffer
+                            self._command_output += line
                             self._output_queue.put(('output', line))
 
                         # Read stderr
                         line = self._process.stderr.readline()
                         if line:
-                            self._output_buffer += f"ERROR: {line}"
-                            st.session_state.output_text = self._output_buffer
-                            self._output_queue.put(('output', f"ERROR: {line}"))
+                            err_line = f"ERROR: {line}"
+                            self._command_output += err_line
+                            self._output_queue.put(('output', err_line))
 
                         # Update progress
                         elapsed = time.time() - start_time
@@ -157,65 +150,37 @@ class CommandExecutor:
                     # Get remaining output
                     out, err = self._process.communicate()
                     if out:
-                        self._output_buffer += out
-                        st.session_state.output_text = self._output_buffer
+                        self._command_output += out
                         self._output_queue.put(('output', out))
                     if err:
-                        self._output_buffer += f"ERROR: {err}"
-                        st.session_state.output_text = self._output_buffer
-                        self._output_queue.put(('output', f"ERROR: {err}"))
+                        err_output = f"ERROR: {err}"
+                        self._command_output += err_output
+                        self._output_queue.put(('output', err_output))
 
-                # Get return code and send final status
+                # Get return code
                 return_code = self._process.poll() or 0
                 execution_time = time.time() - start_time
 
-                if cmd_entry is not None:
-                    cmd_entry['return_code'] = return_code
-                    cmd_entry['output'] = self._output_buffer
-
-                if self._interactive:
-                    status_text = "Interactive session ended"
-                else:
-                    status_text = (
-                        f"Command completed (Return code: {return_code})\n"
-                        f"Execution time: {execution_time:.2f} seconds"
-                    )
+                # Send final status
+                status_text = (
+                    "Interactive session active" if self._interactive else
+                    f"Command completed (Return code: {return_code})\n"
+                    f"Execution time: {execution_time:.2f} seconds"
+                )
                 self._output_queue.put(('status', (return_code == 0, status_text)))
                 self._output_queue.put(('progress', 1.0))
 
             except Exception as e:
                 self._output_queue.put(('error', f"Error executing command: {str(e)}"))
-                if cmd_entry:
-                    cmd_entry['return_code'] = -1
             finally:
-                self._cleanup()
+                if not self._interactive:
+                    self._cleanup()
 
         # Start command execution in a separate thread
         command_thread = threading.Thread(target=run_command)
         command_thread.daemon = True
         command_thread.start()
-
-        # Monitor the output queue and update UI
-        while self._is_running or not self._output_queue.empty():
-            try:
-                msg_type, data = self._output_queue.get(timeout=0.1)
-                if msg_type == 'output':
-                    if not st.session_state.output_text:
-                        st.session_state.output_text = data
-                    else:
-                        st.session_state.output_text += data
-                elif msg_type == 'progress':
-                    st.session_state.progress_value = data
-                elif msg_type == 'status':
-                    is_success, text = data
-                    if is_success:
-                        status_placeholder.success(text)
-                    else:
-                        status_placeholder.error(text)
-                elif msg_type == 'error':
-                    status_placeholder.error(data)
-            except Empty:
-                continue
+        return True
 
     def _cleanup(self):
         """Clean up resources"""
