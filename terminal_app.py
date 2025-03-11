@@ -84,30 +84,6 @@ def nsds_command_center():
         if st.button("❌", help="Clear search", key="clear_search"):
             search_query = ""
 
-    # Show search results if there's a query
-    if search_query:
-        st.sidebar.markdown("### Search Results")
-        results = st.session_state.nsds_commands.search_commands(search_query)
-
-        if results:
-            for idx, (path, cmd_type, description) in enumerate(results):
-                # Create a button for each result with unique key
-                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
-                if st.sidebar.button(
-                    f"➡️ {path}",
-                    key=safe_key,
-                    help=description,
-                    use_container_width=True
-                ):
-                    # Set the category when a search result is clicked
-                    category = path.split()[0]
-                    st.session_state.selected_category = category
-                    st.rerun()
-        else:
-            st.sidebar.info("No matching commands found")
-
-        st.sidebar.markdown("---")
-
     # Display categories as a list in sidebar
     st.sidebar.markdown("### Command Categories")
 
@@ -131,6 +107,86 @@ def nsds_command_center():
         with st.sidebar.expander("Command History", expanded=False):
             for cmd in reversed(st.session_state.command_history):
                 st.text(f"[{cmd['timestamp']}] {cmd['command']}")
+
+    # Main panel content - show search results or category details
+    if search_query:
+        # Only show search results when there's actual input
+        st.markdown("### Search Results")
+        results = st.session_state.nsds_commands.search_commands(search_query)
+
+        if results:
+            for idx, (path, cmd_type, description) in enumerate(results):
+                # Create a button for each result with unique key
+                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
+                if st.button(
+                    f"➡️ {path}",
+                    key=safe_key,
+                    help=description,
+                    use_container_width=True
+                ):
+                    # Set the category when a search result is clicked
+                    category = path.split()[0]
+                    st.session_state.selected_category = category
+                    st.rerun()
+        else:
+            st.info("No matching commands found")
+
+    elif st.session_state.selected_category:
+        # Show category details when no search is active
+        selected_category = st.session_state.selected_category
+
+        # Show category title and description with reduced spacing
+        st.markdown(f'<h1 style="margin-top: 0; padding-top: 0;">{selected_category.upper()}</h1>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="category-description">{st.session_state.nsds_commands.get_category_title(selected_category)}</div>',
+            unsafe_allow_html=True
+        )
+
+        # Get subcommands for the category
+        subcommands = st.session_state.nsds_commands.get_subcommands(selected_category)
+
+        if isinstance(subcommands, dict):
+            if any(isinstance(v, dict) for v in subcommands.values()):
+                # Handle nested subcommands
+                for subcategory, subcmds in subcommands.items():
+                    if isinstance(subcmds, dict) and "subcommands" in subcmds:
+                        st.subheader(subcmds.get("title", subcategory))
+
+                        # Create tabs for subcommands
+                        tab_labels = list(subcmds["subcommands"].keys())
+                        tabs = st.tabs(tab_labels)
+
+                        for tab, (cmd, desc) in zip(tabs, subcmds["subcommands"].items()):
+                            with tab:
+                                st.markdown(f'<div class="subcommand-description">{desc}</div>', unsafe_allow_html=True)
+                                col1, col2 = st.columns([3, 1])
+                                with col2:
+                                    if st.button(
+                                        "Execute",
+                                        key=f"{subcategory}_{cmd}_exec",
+                                        help=f"Execute the {cmd} command",
+                                        use_container_width=True
+                                    ):
+                                        full_command = f"nsds {selected_category} {subcategory} {cmd}"
+                                        st.session_state.command_executor.execute_command(full_command)
+            else:
+                # Handle direct subcommands
+                tab_labels = list(subcommands.keys())
+                tabs = st.tabs(tab_labels)
+
+                for tab, (cmd, desc) in zip(tabs, subcommands.items()):
+                    with tab:
+                        st.markdown(f'<div class="subcommand-description">{desc}</div>', unsafe_allow_html=True)
+                        col1, col2 = st.columns([3, 1])
+                        with col2:
+                            if st.button(
+                                "Execute",
+                                key=f"{selected_category}_{cmd}_exec",
+                                help=f"Execute the {cmd} command",
+                                use_container_width=True
+                            ):
+                                full_command = f"nsds {selected_category} {cmd}"
+                                st.session_state.command_executor.execute_command(full_command)
 
 def terminal_page():
     """Main terminal page"""
