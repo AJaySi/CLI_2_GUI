@@ -57,6 +57,15 @@ class CommandExecutor:
         start_time = time.time()
         output_text = []
 
+        def handle_output(data):
+            """Process and queue output data"""
+            if data:
+                lines = data.split('\n')
+                for line in lines:
+                    if line.strip():
+                        output_text.append(line)
+                        self._output_queue.put(('output', '\n'.join(output_text)))
+
         def run_command():
             try:
                 # Check if command might be interactive
@@ -74,14 +83,14 @@ class CommandExecutor:
                             stdin=self._slave_fd,
                             stdout=self._slave_fd,
                             stderr=self._slave_fd,
-                            preexec_fn=os.setsid
+                            env=os.environ.copy()
                         )
                         self._current_process = process
 
-                        # Buffer for incomplete lines
-                        buffer = ""
+                        # Initial delay to allow Python to start
+                        time.sleep(0.2)
 
-                        # Read from PTY
+                        buffer = ""
                         while process.poll() is None and self._is_running:
                             try:
                                 r, _, _ = select.select([self._master_fd], [], [], 0.1)
@@ -94,13 +103,12 @@ class CommandExecutor:
                                             while '\n' in buffer:
                                                 line, buffer = buffer.split('\n', 1)
                                                 if line.strip():
-                                                    output_text.append(line)
-                                                    self._output_queue.put(('output', '\n'.join(output_text)))
+                                                    handle_output(line)
                                     except OSError as e:
                                         if e.errno != 11:  # Ignore EAGAIN
                                             raise
 
-                                # Update progress
+                                # Update progress periodically
                                 elapsed_time = time.time() - start_time
                                 self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
 
@@ -112,8 +120,7 @@ class CommandExecutor:
 
                         # Process remaining buffer
                         if buffer.strip():
-                            output_text.append(buffer.strip())
-                            self._output_queue.put(('output', '\n'.join(output_text)))
+                            handle_output(buffer.strip())
 
                     except Exception as e:
                         self._output_queue.put(('error', f"Interactive mode error: {str(e)}"))
@@ -132,35 +139,29 @@ class CommandExecutor:
                     )
                     self._current_process = process
 
-                    # Read output in real-time
                     while True:
                         # Read stdout
                         stdout_line = process.stdout.readline()
                         if stdout_line:
-                            output_text.append(stdout_line.strip())
-                            self._output_queue.put(('output', '\n'.join(output_text)))
+                            handle_output(stdout_line.strip())
 
                         # Read stderr
                         stderr_line = process.stderr.readline()
                         if stderr_line:
-                            output_text.append(f"ERROR: {stderr_line.strip()}")
-                            self._output_queue.put(('output', '\n'.join(output_text)))
+                            handle_output(f"ERROR: {stderr_line.strip()}")
 
                         # Check if process has finished
                         if process.poll() is not None:
                             remaining_stdout, remaining_stderr = process.communicate()
                             if remaining_stdout:
-                                output_text.append(remaining_stdout.strip())
+                                handle_output(remaining_stdout.strip())
                             if remaining_stderr:
-                                output_text.append(f"ERROR: {remaining_stderr.strip()}")
-                            if remaining_stdout or remaining_stderr:
-                                self._output_queue.put(('output', '\n'.join(output_text)))
+                                handle_output(f"ERROR: {remaining_stderr.strip()}")
                             break
 
                         # Update progress
                         elapsed_time = time.time() - start_time
                         self._output_queue.put(('progress', min(0.99, elapsed_time / 10.0)))
-                        time.sleep(0.1)
 
                 # Get return code and send final status
                 return_code = process.poll() or 0
