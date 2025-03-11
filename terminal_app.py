@@ -50,15 +50,40 @@ def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeh
 
 def nsds_command_center():
     """NSDS Command Center UI"""
-    st.sidebar.title("NSDS Command Center")
+    # Reduce top margin
+    st.markdown("""
+        <style>
+        .block-container {
+            padding-top: 2rem;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # Add search bar at the top of the sidebar
-    search_query = st.sidebar.text_input(
-        "🔍 Search Commands",
-        key="command_search",
-        placeholder="Search commands...",
-        help="Search for commands across all categories"
-    )
+    st.sidebar.markdown("""
+        <style>
+        [data-testid="stSidebarNav"] {
+            padding-top: 0rem;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Add title with reduced padding
+    st.sidebar.markdown('<h1 style="margin-top: 0; padding-top: 0;">NSDS Command Center</h1>', unsafe_allow_html=True)
+
+    # Search section with clear button
+    col1, col2 = st.sidebar.columns([5, 1])
+    with col1:
+        search_query = st.text_input(
+            "🔍 Search Commands",
+            key="command_search",
+            placeholder="Search commands...",
+            help="Search for commands across all categories",
+            label_visibility="collapsed"
+        )
+    with col2:
+        if st.button("❌", help="Clear search", key="clear_search"):
+            st.session_state.command_search = ""
+            st.rerun()
 
     # Show search results if there's a query
     if search_query:
@@ -101,12 +126,19 @@ def nsds_command_center():
         ):
             st.session_state.selected_category = category
 
+    # Move command history to bottom of sidebar
+    st.sidebar.markdown("---")
+    if st.session_state.command_history:
+        with st.sidebar.expander("Command History", expanded=False):
+            for cmd in reversed(st.session_state.command_history):
+                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
+
     # Main panel content
     if st.session_state.selected_category:
         selected_category = st.session_state.selected_category
 
-        # Show category title and description
-        st.title(f"{selected_category.upper()}")
+        # Show category title and description with reduced spacing
+        st.markdown(f'<h1 style="margin-top: 0; padding-top: 0;">{selected_category.upper()}</h1>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="category-description">{st.session_state.nsds_commands.get_category_title(selected_category)}</div>',
             unsafe_allow_html=True
@@ -165,7 +197,7 @@ def terminal_page():
 
     st.markdown("---")
     st.title("Web Terminal")
-    st.markdown("Enter commands below to execute them. Use the sidebar to view command history.")
+    st.markdown("Enter commands below to execute them.")
 
     # Place command input and execute button side by side
     col1, col2 = st.columns([5, 1])
@@ -212,9 +244,7 @@ def terminal_page():
     # Output area
     st.markdown("### Command Output")
     output_placeholder = st.empty()
-    st.markdown("")  # Spacing
     progress_placeholder = st.empty()
-    st.markdown("")  # Spacing
     status_placeholder = st.empty()
 
     # Execute command if requested
@@ -264,15 +294,6 @@ def main():
 
     # Apply custom styles
     apply_styles()
-
-    # Sidebar with command history
-    with st.sidebar:
-        st.markdown("---")
-        st.title("Command History")
-        if st.session_state.command_history:
-            for cmd in reversed(st.session_state.command_history):
-                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
-                st.markdown("---")
 
     # Main terminal page
     terminal_page()
