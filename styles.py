@@ -179,5 +179,48 @@ def apply_styles():
         transition: all 0.3s ease;
     }
 
+    /* Loading spinner styling */
+    .stSpinner {
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    /* Status indicator styling */
+    .stStatus {
+        border-radius: 4px;
+        padding: 8px;
+        margin: 8px 0;
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* Status complete animation */
+    @keyframes statusComplete {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .stStatus[data-state="complete"] {
+        animation: statusComplete 0.5s ease;
+    }
+
+    /* Loading state transitions */
+    .element-container {
+        transition: opacity 0.3s ease;
+    }
+
+    .element-container.loading {
+        opacity: 0.7;
+    }
+
+    /* Spinner animation */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .stSpinner svg {
+        animation: spin 1s linear infinite;
+    }
     </style>
     """, unsafe_allow_html=True)

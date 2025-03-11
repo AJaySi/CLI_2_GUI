@@ -86,27 +86,30 @@ def nsds_command_center():
 
     # Show search results if there's a query
     if search_query:
-        st.sidebar.markdown("### Search Results")
-        results = st.session_state.nsds_commands.search_commands(search_query)
+        with st.sidebar.status("🔍 Searching...") as status:
+            st.sidebar.markdown("### Search Results")
+            results = st.session_state.nsds_commands.search_commands(search_query)
+            status.update(label="✅ Search complete", state="complete")
 
-        if results:
-            for idx, (path, cmd_type, description) in enumerate(results):
-                # Create a button for each result with unique key
-                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
-                if st.sidebar.button(
-                    f"➡️ {path}",
-                    key=safe_key,
-                    help=description,
-                    use_container_width=True
-                ):
-                    # Set the category when a search result is clicked
-                    category = path.split()[0]
-                    st.session_state.selected_category = category
-                    st.rerun()
-        else:
-            st.sidebar.info("No matching commands found")
+            if results:
+                for idx, (path, cmd_type, description) in enumerate(results):
+                    # Create a button for each result with unique key
+                    safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
+                    if st.sidebar.button(
+                        f"➡️ {path}",
+                        key=safe_key,
+                        help=description,
+                        use_container_width=True
+                    ):
+                        with st.spinner(f"Loading {path} details..."):
+                            # Set the category when a search result is clicked
+                            category = path.split()[0]
+                            st.session_state.selected_category = category
+                            st.rerun()
+            else:
+                st.sidebar.info("No matching commands found")
 
-        st.sidebar.markdown("---")
+            st.sidebar.markdown("---")
 
     # Display categories as a list in sidebar
     st.sidebar.markdown("### Command Categories")
@@ -123,7 +126,8 @@ def nsds_command_center():
             help=st.session_state.nsds_commands.get_category_title(category),
             use_container_width=True,
         ):
-            st.session_state.selected_category = category
+            with st.spinner(f"Loading {category} details..."):
+                st.session_state.selected_category = category
 
     # Move command history to bottom of sidebar
     st.sidebar.markdown("---")
@@ -168,8 +172,9 @@ def nsds_command_center():
                                         help=f"Execute the {cmd} command",
                                         use_container_width=True
                                     ):
-                                        full_command = f"nsds {selected_category} {subcategory} {cmd}"
-                                        st.session_state.command_executor.execute_command(full_command)
+                                        with st.spinner(f"Executing {cmd}..."):
+                                            full_command = f"nsds {selected_category} {subcategory} {cmd}"
+                                            st.session_state.command_executor.execute_command(full_command)
             else:
                 # Handle direct subcommands
                 tab_labels = list(subcommands.keys())
@@ -186,8 +191,9 @@ def nsds_command_center():
                                 help=f"Execute the {cmd} command",
                                 use_container_width=True
                             ):
-                                full_command = f"nsds {selected_category} {cmd}"
-                                st.session_state.command_executor.execute_command(full_command)
+                                with st.spinner(f"Executing {cmd}..."):
+                                    full_command = f"nsds {selected_category} {cmd}"
+                                    st.session_state.command_executor.execute_command(full_command)
 
 def terminal_page():
     """Main terminal page"""
@@ -261,7 +267,8 @@ def terminal_page():
             st.session_state.progress_value = 0.0
 
             # Execute command
-            st.session_state.command_executor.execute_command(command)
+            with st.spinner("Executing command..."):
+                st.session_state.command_executor.execute_command(command)
 
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
