@@ -20,6 +20,8 @@ def initialize_session_state():
         st.session_state.selected_category = None
     if 'nsds_commands' not in st.session_state:
         st.session_state.nsds_commands = CommandStructure()
+    if 'command_input' not in st.session_state:
+        st.session_state.command_input = ''
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -172,9 +174,10 @@ def nsds_command_center():
                                         help=f"Execute the {cmd} command",
                                         use_container_width=True
                                     ):
-                                        with st.spinner(f"Executing {cmd}..."):
+                                        with st.spinner(f"Preparing command: {cmd}..."):
                                             full_command = f"nsds {selected_category} {subcategory} {cmd}"
-                                            st.session_state.command_executor.execute_command(full_command)
+                                            st.session_state.command_input = full_command
+                                            st.rerun()
             else:
                 # Handle direct subcommands
                 tab_labels = list(subcommands.keys())
@@ -191,9 +194,10 @@ def nsds_command_center():
                                 help=f"Execute the {cmd} command",
                                 use_container_width=True
                             ):
-                                with st.spinner(f"Executing {cmd}..."):
+                                with st.spinner(f"Preparing command: {cmd}..."):
                                     full_command = f"nsds {selected_category} {cmd}"
-                                    st.session_state.command_executor.execute_command(full_command)
+                                    st.session_state.command_input = full_command
+                                    st.rerun()
 
 def terminal_page():
     """Main terminal page"""
@@ -211,6 +215,7 @@ def terminal_page():
         command = st.text_input(
             "Enter command",
             key="command_input",
+            value=st.session_state.command_input,
             placeholder="Type your command here (e.g., ls, pwd, python)",
             label_visibility="collapsed"
         )
