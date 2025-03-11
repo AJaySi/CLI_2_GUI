@@ -13,8 +13,14 @@ def initialize_session_state():
         st.session_state.output_text = ''
     if 'progress_value' not in st.session_state:
         st.session_state.progress_value = 0.0
-    if 'interactive_input' not in st.session_state:
-        st.session_state.interactive_input = ''
+    if 'last_interactive_input' not in st.session_state:
+        st.session_state.last_interactive_input = ''
+
+def handle_interactive_input(input_text):
+    """Callback to handle interactive input changes"""
+    if input_text and input_text != st.session_state.last_interactive_input:
+        st.session_state.last_interactive_input = input_text
+        st.session_state.command_executor.send_input(input_text)
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -45,15 +51,14 @@ def terminal_page():
     # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
         st.info("🖥️ Interactive session active - Enter commands below")
-        interactive_input = st.text_input(
+        st.text_input(
             "Interactive Input:",
             key="interactive_input",
             placeholder="Enter your command here...",
-            help="Type your command and press Enter to send"
+            help="Type your command and press Enter to send",
+            on_change=handle_interactive_input,
+            args=(st.session_state.get("interactive_input", ""),)
         )
-        if interactive_input and interactive_input != st.session_state.interactive_input:
-            st.session_state.interactive_input = interactive_input
-            st.session_state.command_executor.send_input(interactive_input)
 
     # Main output area with spacing
     st.markdown("### Command Output")
@@ -77,7 +82,7 @@ def terminal_page():
             # Clear previous output
             st.session_state.output_text = ''
             st.session_state.progress_value = 0.0
-            st.session_state.interactive_input = ''
+            st.session_state.last_interactive_input = ''
 
             # Execute command
             st.session_state.command_executor.execute_command(
