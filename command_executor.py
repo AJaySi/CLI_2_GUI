@@ -19,6 +19,7 @@ class CommandExecutor:
         self._interactive = False
         self._master_fd = None
         self._slave_fd = None
+        self._output_buffer = ""
 
     def is_running(self):
         return self._is_running
@@ -29,10 +30,18 @@ class CommandExecutor:
     def _read_output(self, fd):
         """Read output from file descriptor"""
         try:
-            output = os.read(fd, 1024).decode()
-            if output:
-                self._output_queue.put(('output', output))
-            return bool(output)
+            data = os.read(fd, 1024).decode(errors='replace')
+            if data:
+                # Process the output for better display
+                self._output_buffer += data
+                # Update the output in session state
+                if 'output_text' not in st.session_state:
+                    st.session_state.output_text = self._output_buffer
+                else:
+                    st.session_state.output_text = self._output_buffer
+                # Also send to queue for processing
+                self._output_queue.put(('output', data))
+            return bool(data)
         except (OSError, IOError) as e:
             if e.errno != 11:  # EAGAIN
                 return False
@@ -41,16 +50,22 @@ class CommandExecutor:
     def send_input(self, input_text):
         """Send input to interactive process"""
         if not self._interactive or not self._master_fd:
-            return
+            return False
 
         try:
             # Ensure input ends with newline
             if not input_text.endswith('\n'):
                 input_text += '\n'
+            # Add input to output buffer for display
+            self._output_buffer += f">>> {input_text}"
+            # Update session state
+            st.session_state.output_text = self._output_buffer
+            # Send input to process
             os.write(self._master_fd, input_text.encode())
-            self._output_queue.put(('output', f">>> {input_text}"))
+            return True
         except OSError as e:
             self._output_queue.put(('error', f"Failed to send input: {str(e)}"))
+            return False
 
     def execute_command(self, command, output_placeholder, progress_bar, status_placeholder, cmd_entry=None):
         """Execute a command with real-time output"""
@@ -60,6 +75,7 @@ class CommandExecutor:
 
         self._is_running = True
         start_time = time.time()
+        self._output_buffer = ""  # Reset output buffer
 
         # Check if command might be interactive
         interactive_commands = ['python', 'python3', 'ipython', 'node', 'mysql']
@@ -92,6 +108,9 @@ class CommandExecutor:
                     os.close(self._slave_fd)
                     self._slave_fd = None
 
+                    # Initial delay to let Python start
+                    time.sleep(0.2)
+
                     # Read output loop
                     while self._is_running and self._process.poll() is None:
                         r, w, e = select.select([self._master_fd], [], [], 0.1)
@@ -120,11 +139,15 @@ class CommandExecutor:
                         # Read stdout
                         line = self._process.stdout.readline()
                         if line:
+                            self._output_buffer += line
+                            st.session_state.output_text = self._output_buffer
                             self._output_queue.put(('output', line))
 
                         # Read stderr
                         line = self._process.stderr.readline()
                         if line:
+                            self._output_buffer += f"ERROR: {line}"
+                            st.session_state.output_text = self._output_buffer
                             self._output_queue.put(('output', f"ERROR: {line}"))
 
                         # Update progress
@@ -134,8 +157,12 @@ class CommandExecutor:
                     # Get remaining output
                     out, err = self._process.communicate()
                     if out:
+                        self._output_buffer += out
+                        st.session_state.output_text = self._output_buffer
                         self._output_queue.put(('output', out))
                     if err:
+                        self._output_buffer += f"ERROR: {err}"
+                        st.session_state.output_text = self._output_buffer
                         self._output_queue.put(('output', f"ERROR: {err}"))
 
                 # Get return code and send final status
@@ -144,6 +171,7 @@ class CommandExecutor:
 
                 if cmd_entry is not None:
                     cmd_entry['return_code'] = return_code
+                    cmd_entry['output'] = self._output_buffer
 
                 if self._interactive:
                     status_text = "Interactive session ended"
@@ -172,7 +200,7 @@ class CommandExecutor:
             try:
                 msg_type, data = self._output_queue.get(timeout=0.1)
                 if msg_type == 'output':
-                    if 'output_text' not in st.session_state:
+                    if not st.session_state.output_text:
                         st.session_state.output_text = data
                     else:
                         st.session_state.output_text += data
