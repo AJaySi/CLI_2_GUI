@@ -1,4 +1,3 @@
-
 import streamlit as st
 import time
 from datetime import datetime
@@ -25,10 +24,13 @@ def initialize_session_state():
         st.session_state.command_executor = CommandExecutor()
     if 'current_command' not in st.session_state:
         st.session_state.current_command = None
+    if 'interactive_input' not in st.session_state:
+        st.session_state.interactive_input = ''
     if 'last_interactive_input' not in st.session_state:
         st.session_state.last_interactive_input = ''
     if 'page' not in st.session_state:
         st.session_state.page = 'terminal'
+
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -61,7 +63,7 @@ def terminal_page():
             if stop:
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
-                
+
     # Initialize output state variables if they don't exist
     if "latest_output" not in st.session_state:
         st.session_state["latest_output"] = ""
@@ -88,14 +90,12 @@ def terminal_page():
             send_button = st.button("Send", key="send_input_button")
             
         # Store the last input in a different session state variable
-        if 'last_interactive_input' not in st.session_state:
-            st.session_state.last_interactive_input = ""
-            
         if (interactive_input and interactive_input != st.session_state.last_interactive_input) or send_button:
             if interactive_input:
                 st.session_state.last_interactive_input = interactive_input
                 st.session_state.command_executor.send_input(interactive_input)
                 # We can't clear the text_input directly, this will be handled on rerun
+
 
     # Main output area - create containers to ensure visibility
     st.markdown("### Command Output")
@@ -116,10 +116,10 @@ def terminal_page():
         # Force a rerun at a more controlled interval to update UI with latest output
         if "last_rerun_time" not in st.session_state:
             st.session_state.last_rerun_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
         elif time.time() - st.session_state.last_rerun_time > 0.5:  # Rerun every 0.5 seconds
             st.session_state.last_rerun_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
     
     if execute and command.strip():
         try:
@@ -141,12 +141,12 @@ def terminal_page():
             )
             
             # Force immediate rerun to start showing output
-            st.experimental_rerun()
+            st.rerun()
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
     elif execute:
         st.error("Please enter a command")
-        
+    
     # Display current output from session state
     if st.session_state["output_pending"]:
         # Update output display
@@ -169,6 +169,7 @@ def terminal_page():
         
         # Keep output pending flag true to ensure output remains visible
 
+
 def main():
     # Apply styles after page config
     apply_styles()
@@ -181,11 +182,11 @@ def main():
         # Navigation buttons
         if st.button("Terminal", key="nav_terminal", use_container_width=True):
             st.session_state.page = 'terminal'
-            st.experimental_rerun()
+            st.rerun()
             
         if st.button("Command Groups", key="nav_cmd_groups", use_container_width=True):
             st.session_state.page = 'command_groups'
-            st.experimental_rerun()
+            st.rerun()
             
         st.markdown("---")
         
