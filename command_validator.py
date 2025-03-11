@@ -23,8 +23,8 @@ class CommandValidator:
         Validate a command and return validation status, message, and suggestion
         Returns: (is_valid, message, suggestion)
         """
-        if not command:
-            return True, "", None
+        if not command or command.isspace():
+            return False, "Command cannot be empty", None
 
         # Split command and arguments
         parts = command.strip().split()
@@ -47,7 +47,7 @@ class CommandValidator:
         # Check common commands first
         if command in self._common_commands:
             return True
-
+        
         # Check if command exists in system PATH
         return bool(shutil.which(command))
 
@@ -59,7 +59,7 @@ class CommandValidator:
             if (command in cmd or cmd in command) or \
                (len(command) > 2 and self._levenshtein_distance(command, cmd) <= 2):
                 suggestions.append(f"{cmd} ({self._common_commands[cmd]})")
-
+        
         if suggestions:
             return f"Did you mean: {' or '.join(suggestions)}?"
         return None
@@ -82,11 +82,11 @@ class CommandValidator:
                 parts = command.split('>>')
             else:
                 parts = command.split('>')
-
+            
             if len(parts) > 2 or not parts[-1].strip():
                 return False, "Invalid redirection syntax"
 
-        return True, "Valid command"
+        return True, "Valid syntax"
 
     def _levenshtein_distance(self, s1: str, s2: str) -> int:
         """Calculate the Levenshtein distance between two strings"""
