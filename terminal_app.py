@@ -13,6 +13,8 @@ def initialize_session_state():
         st.session_state.output_text = ''
     if 'progress_value' not in st.session_state:
         st.session_state.progress_value = 0.0
+    if 'interactive_input' not in st.session_state:
+        st.session_state.interactive_input = ''
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -25,11 +27,11 @@ def terminal_page():
     command = st.text_input(
         "Enter command:",
         key="command_input",
-        placeholder="Type your command here (e.g., ls, pwd, echo 'hello')",
+        placeholder="Type your command here (e.g., ls, pwd, python)",
         help="Enter a valid shell command to execute"
     )
 
-    # Execute and stop buttons
+    # Execute and stop buttons in a row
     col1, col2 = st.columns([1, 4])
     with col1:
         execute = st.button("Execute", key="execute_button", type="primary")
@@ -40,10 +42,25 @@ def terminal_page():
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
 
-    # Main output area
+    # Interactive input section (only shown when in interactive mode)
+    if st.session_state.command_executor.is_interactive():
+        st.info("🖥️ Interactive session active - Enter commands below")
+        interactive_input = st.text_input(
+            "Interactive Input:",
+            key="interactive_input",
+            placeholder="Enter your command here...",
+            help="Type your command and press Enter to send"
+        )
+        if interactive_input and interactive_input != st.session_state.interactive_input:
+            st.session_state.interactive_input = interactive_input
+            st.session_state.command_executor.send_input(interactive_input)
+
+    # Main output area with spacing
     st.markdown("### Command Output")
     output_placeholder = st.empty()
+    st.markdown("")  # Add some spacing
     progress_placeholder = st.empty()
+    st.markdown("")  # Add some spacing
     status_placeholder = st.empty()
 
     # Execute command
@@ -60,6 +77,7 @@ def terminal_page():
             # Clear previous output
             st.session_state.output_text = ''
             st.session_state.progress_value = 0.0
+            st.session_state.interactive_input = ''
 
             # Execute command
             st.session_state.command_executor.execute_command(
@@ -81,7 +99,7 @@ def terminal_page():
 
     # Display current output
     if st.session_state.output_text:
-        output_placeholder.code(st.session_state.output_text, language="bash")
+        output_placeholder.code(st.session_state.output_text)
     if st.session_state.progress_value > 0:
         progress_placeholder.progress(st.session_state.progress_value)
 
