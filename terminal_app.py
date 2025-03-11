@@ -66,11 +66,12 @@ def nsds_command_center():
         results = st.session_state.nsds_commands.search_commands(search_query)
 
         if results:
-            for path, cmd_type, description in results:
-                # Create a button for each result
+            for idx, (path, cmd_type, description) in enumerate(results):
+                # Create a button for each result with unique key
+                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
                 if st.sidebar.button(
                     f"➡️ {path}",
-                    key=f"search_{path}",
+                    key=safe_key,
                     help=description,
                     use_container_width=True
                 ):
