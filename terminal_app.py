@@ -27,15 +27,13 @@ def format_timestamp():
 
 def validate_command(command: str) -> None:
     """Validate command and update validation state"""
-    if command.strip():
-        is_valid, message, suggestion = st.session_state.command_validator.validate_command(command)
-        st.session_state.validation_state = {
-            'valid': is_valid,
-            'message': message,
-            'suggestion': suggestion
-        }
-    else:
-        st.session_state.validation_state = {'valid': True, 'message': '', 'suggestion': None}
+    # Always validate the current command, even if empty
+    is_valid, message, suggestion = st.session_state.command_validator.validate_command(command.strip())
+    st.session_state.validation_state = {
+        'valid': is_valid,
+        'message': message,
+        'suggestion': suggestion
+    }
 
 def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder):
     """Update UI elements from command output queue"""
@@ -97,13 +95,13 @@ def terminal_page():
         )
 
     # Show validation feedback
-    if command:
+    if command.strip():  # Only show feedback if there's actual input
         if not st.session_state.validation_state['valid']:
             st.error(st.session_state.validation_state['message'])
             if st.session_state.validation_state['suggestion']:
                 st.info(st.session_state.validation_state['suggestion'])
         elif not st.session_state.command_executor.is_running():
-            st.success(st.session_state.validation_state['message'])
+            st.success("Valid command")
 
     # Stop button (only shown when command is running)
     if st.session_state.command_executor.is_running():
