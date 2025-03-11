@@ -36,6 +36,7 @@ def voice_input_component():
                 recognition.onstart = () => {
                     voiceButton.style.backgroundColor = '#e74c3c';
                     status.textContent = 'Listening...';
+                    status.style.opacity = '1';
                 };
 
                 recognition.onresult = (event) => {
@@ -50,21 +51,25 @@ def voice_input_component():
                 recognition.onerror = (event) => {
                     console.error('Speech recognition error:', event.error);
                     status.textContent = 'Error: ' + event.error;
+                    status.style.opacity = '1';
                     resetButton();
                 };
 
                 recognition.onend = () => {
                     resetButton();
+                    setTimeout(() => {
+                        status.style.opacity = '0';
+                    }, 2000);
                 };
             } else {
                 status.textContent = 'Speech recognition not supported';
+                status.style.opacity = '1';
                 voiceButton.disabled = true;
             }
         }
 
         function resetButton() {
             voiceButton.style.backgroundColor = '#3498db';
-            status.textContent = '';
         }
 
         voiceButton.onclick = () => {
@@ -87,7 +92,6 @@ def voice_input_component():
 
 def handle_voice_input():
     """Handle voice input from the JavaScript component"""
-    # Create a placeholder for voice input results
     result = components.html(
         """
         <script>

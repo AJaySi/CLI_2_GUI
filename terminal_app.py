@@ -20,8 +20,10 @@ def initialize_session_state():
         st.session_state.selected_category = None
     if 'nsds_commands' not in st.session_state:
         st.session_state.nsds_commands = CommandStructure()
-    if 'command_input' not in st.session_state:
-        st.session_state.command_input = ''
+    if 'voice_command_pending' not in st.session_state:
+        st.session_state.voice_command_pending = None
+    if 'command_input_default' not in st.session_state:
+        st.session_state.command_input_default = ''
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -211,21 +213,27 @@ def terminal_page():
     # Place command input, voice input, and execute button side by side
     col1, col2, col3 = st.columns([5, 0.5, 1])
 
+    # Get pending voice command if any
+    default_command = st.session_state.voice_command_pending if st.session_state.voice_command_pending else st.session_state.command_input_default
+    st.session_state.voice_command_pending = None  # Clear pending command
+
     with col1:
         command = st.text_input(
             "Enter command",
             key="command_input",
-            value=st.session_state.command_input,
+            value=default_command,
             placeholder="Type your command here (e.g., ls, pwd, python)",
             label_visibility="collapsed"
         )
+        # Store the current command input for next render
+        st.session_state.command_input_default = command
 
     with col2:
         from voice_input import voice_input_component, handle_voice_input
         voice_input_component()
         voice_command = handle_voice_input()
         if voice_command:
-            st.session_state.command_input = voice_command
+            st.session_state.voice_command_pending = voice_command
             st.rerun()
 
     with col3:
