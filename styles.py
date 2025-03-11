@@ -4,22 +4,37 @@ def apply_styles():
     # Apply custom CSS
     st.markdown("""
     <style>
-    /* Search input styling */
+    /* Base animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    /* Search input styling with animations */
     .stTextInput input {
         background-color: #2d2d2d;
         border: 1px solid #444;
         color: white;
         border-radius: 4px;
         padding: 8px 12px;
+        transition: all 0.3s ease;
     }
 
     .stTextInput input:focus {
         border-color: #3498db;
         box-shadow: 0 0 0 1px #3498db;
-    }
-
-    .stTextInput input::placeholder {
-        color: #888;
+        transform: translateY(-1px);
     }
 
     /* Clear button styling */
@@ -29,51 +44,48 @@ def apply_styles():
         min-height: 1.8rem !important;
         padding: 0.2rem !important;
         font-size: 0.7rem !important;
+        transition: all 0.2s ease !important;
     }
 
-    /* Terminal-like styling */
-    .stTextInput input {
-        font-family: 'Courier New', monospace;
-        background-color: #0e1117;
-        color: #fff;
-        border: 1px solid #2e6f95;
+    [data-testid="clear_search"]:hover {
+        transform: scale(1.1);
     }
 
-    /* Command output styling */
-    pre {
-        background-color: #0e1117;
-        color: #cccccc;
-        border: 1px solid #2e6f95;
-        border-radius: 5px;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        max-height: 500px;
-        overflow-y: auto;
-    }
-
-    /* Button styling */
-    .stButton button {
-        background-color: #3498db;
-        color: white;
-        border: none;
+    /* Sidebar command list styling with animations */
+    .sidebar-command {
+        background-color: #1e1e1e;
+        padding: 8px 12px;
         border-radius: 4px;
-        padding: 10px 20px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        border: 1px solid #333;
+        transition: all 0.3s ease;
+        animation: slideIn 0.3s ease;
     }
 
-    .stButton button:hover {
+    .sidebar-command:hover {
+        background-color: #2d2d2d;
+        border-color: #3498db;
+        transform: translateX(5px);
+    }
+
+    .sidebar-command.selected {
         background-color: #2980b9;
+        border-color: #3498db;
+        animation: pulse 0.3s ease;
     }
 
-    .stButton button:disabled {
-        background-color: #95a5a6;
-        cursor: not-allowed;
+    /* Search results with animations */
+    .search-result {
+        animation: fadeIn 0.3s ease;
+        transition: all 0.3s ease;
     }
 
-    .block-container {
-        padding-top: 2rem;
+    .search-result:hover {
+        transform: translateX(5px);
     }
 
-    /* Tab styling */
+    /* Tab styling with animations */
     .stTabs {
         background-color: #1e1e1e;
         border-radius: 5px;
@@ -89,123 +101,52 @@ def apply_styles():
         margin-right: 4px !important;
         border: none !important;
         font-size: 14px !important;
+        transition: all 0.3s ease !important;
     }
 
     .stTab[aria-selected="true"] {
         background-color: #3498db !important;
         border-color: #3498db !important;
+        transform: translateY(-2px);
     }
 
     .stTab:hover {
         background-color: #404040 !important;
+        transform: translateY(-1px);
     }
 
-    /* Sidebar command list styling */
-    .sidebar-command {
-        background-color: #1e1e1e;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 4px;
-        cursor: pointer;
-        border: 1px solid #333;
-        transition: all 0.2s ease;
-    }
-
-    .sidebar-command:hover {
-        background-color: #2d2d2d;
-        border-color: #3498db;
-    }
-
-    .sidebar-command.selected {
-        background-color: #2980b9;
-        border-color: #3498db;
-    }
-
-    /* Success message styling */
-    .element-container .stSuccess {
-        background-color: #27ae60;
-        padding: 0.5rem;
-        border-radius: 4px;
-        margin: 0.5rem 0;
-    }
-
-    /* Error message styling */
-    .element-container .stError {
-        background-color: #e74c3c;
-        padding: 0.5rem;
-        border-radius: 4px;
-        margin: 0.5rem 0;
-    }
-
-    /* Info message styling */
-    .element-container .stInfo {
+    /* Execute button with animations */
+    .stButton button {
         background-color: #3498db;
-        padding: 0.5rem;
+        color: white;
+        border: none;
         border-radius: 4px;
-        margin: 0.5rem 0;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
     }
 
-    /* Category description styling */
+    .stButton button:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .stButton button:active {
+        transform: translateY(0);
+    }
+
+    /* Category description with animations */
     .category-description {
         background-color: #2d2d2d;
         padding: 12px;
         border-radius: 4px;
         margin: 10px 0;
         border-left: 4px solid #3498db;
+        animation: fadeIn 0.3s ease;
     }
 
-    /* Subcommand description styling */
-    .subcommand-description {
-        font-size: 14px;
-        color: #bbb;
-        margin-bottom: 12px;
-    }
-
-    /* Search result styling */
-    .search-result {
-        background-color: #1e1e1e;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 4px;
-        cursor: pointer;
-        border: 1px solid #333;
-        transition: all 0.2s ease;
-    }
-
-    .search-result:hover {
-        background-color: #2d2d2d;
-        border-color: #3498db;
-    }
-
-    .search-result-path {
-        color: #3498db;
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .search-result-description {
-        color: #bbb;
-        font-size: 12px;
-    }
-    /* Validation feedback styling */
-    .command-valid {
-        border-color: #27ae60 !important;
-    }
-
-    .command-invalid {
-        border-color: #e74c3c !important;
-    }
-
-    /* Sidebar styling */
-    .sidebar .element-container {
-        background-color: #262730;
-        padding: 0.5rem;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Improve output visibility */
-    code {
+    /* Command output with animations */
+    pre {
         background-color: #1e1e1e;
         color: #f8f8f8;
         padding: 1rem;
@@ -215,18 +156,27 @@ def apply_styles():
         white-space: pre-wrap;
         display: block;
         overflow-x: auto;
+        animation: fadeIn 0.3s ease;
+        transition: all 0.3s ease;
     }
 
-    /* Make progress bar more visible */
+    /* Progress bar animation */
     .stProgress > div > div {
         height: 10px !important;
+        transition: all 0.3s ease !important;
     }
 
-    /* Suggestion styling */
-    .suggestion {
-        font-style: italic;
-        color: #3498db;
-        margin-top: 0.25rem;
+    /* Command history with animations */
+    .element-container {
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* Status messages with animations */
+    .element-container .stSuccess,
+    .element-container .stError,
+    .element-container .stInfo {
+        animation: fadeIn 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     </style>
