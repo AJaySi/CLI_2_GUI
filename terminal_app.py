@@ -16,11 +16,13 @@ def initialize_session_state():
     if 'last_interactive_input' not in st.session_state:
         st.session_state.last_interactive_input = ''
 
-def handle_interactive_input(input_text):
-    """Callback to handle interactive input changes"""
-    if input_text and input_text != st.session_state.last_interactive_input:
-        st.session_state.last_interactive_input = input_text
-        st.session_state.command_executor.send_input(input_text)
+def handle_interactive_input():
+    """Callback to handle interactive input execution"""
+    if st.session_state.interactive_input and st.session_state.interactive_input != st.session_state.last_interactive_input:
+        st.session_state.last_interactive_input = st.session_state.interactive_input
+        st.session_state.command_executor.send_input(st.session_state.interactive_input)
+        # Clear the input after sending
+        st.session_state.interactive_input = ''
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -29,7 +31,7 @@ def terminal_page():
     st.title("Web Terminal")
     st.markdown("Enter commands below to execute them. Use the sidebar to view command history.")
 
-    # Command input
+    # Main command input
     command = st.text_input(
         "Enter command:",
         key="command_input",
@@ -51,14 +53,22 @@ def terminal_page():
     # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
         st.info("🖥️ Interactive session active - Enter commands below")
-        st.text_input(
-            "Interactive Input:",
-            key="interactive_input",
-            placeholder="Enter your command here...",
-            help="Type your command and press Enter to send",
-            on_change=handle_interactive_input,
-            args=(st.session_state.get("interactive_input", ""),)
-        )
+
+        # Create two columns for input field and execute button
+        col1, col2 = st.columns([4, 1])
+
+        with col1:
+            st.text_input(
+                "Interactive Input:",
+                key="interactive_input",
+                placeholder="Enter your command here...",
+                help="Type your command and press Enter or click Execute to send",
+                on_change=handle_interactive_input
+            )
+
+        with col2:
+            if st.button("Execute", key="interactive_execute"):
+                handle_interactive_input()
 
     # Main output area with spacing
     st.markdown("### Command Output")
@@ -83,6 +93,7 @@ def terminal_page():
             st.session_state.output_text = ''
             st.session_state.progress_value = 0.0
             st.session_state.last_interactive_input = ''
+            st.session_state.interactive_input = ''  # Clear interactive input
 
             # Execute command
             st.session_state.command_executor.execute_command(
