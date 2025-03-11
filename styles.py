@@ -222,5 +222,47 @@ def apply_styles():
     .stSpinner svg {
         animation: spin 1s linear infinite;
     }
+
+    /* Voice input button styling */
+    #voice_button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #voice_button:hover {
+        transform: scale(1.1);
+        background-color: #2980b9;
+    }
+
+    #voice_button:active {
+        transform: scale(0.95);
+    }
+
+    #voice_button.recording {
+        background-color: #e74c3c;
+        animation: pulse 1.5s infinite;
+    }
+
+    #status {
+        font-size: 12px;
+        color: #bbb;
+        margin-left: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #status.visible {
+        opacity: 1;
+    }
     </style>
     """, unsafe_allow_html=True)

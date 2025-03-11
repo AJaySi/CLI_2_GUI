@@ -208,8 +208,8 @@ def terminal_page():
     st.title("Web Terminal")
     st.markdown("Enter commands below to execute them.")
 
-    # Place command input and execute button side by side
-    col1, col2 = st.columns([5, 1])
+    # Place command input, voice input, and execute button side by side
+    col1, col2, col3 = st.columns([5, 0.5, 1])
 
     with col1:
         command = st.text_input(
@@ -221,6 +221,14 @@ def terminal_page():
         )
 
     with col2:
+        from voice_input import voice_input_component, handle_voice_input
+        voice_input_component()
+        voice_command = handle_voice_input()
+        if voice_command:
+            st.session_state.command_input = voice_command
+            st.rerun()
+
+    with col3:
         execute = st.button("Execute", key="execute_button", type="primary", use_container_width=True)
 
     # Stop button (only shown when command is running)
