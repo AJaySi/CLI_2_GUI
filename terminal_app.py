@@ -2,27 +2,17 @@ import streamlit as st
 import time
 from datetime import datetime
 from command_executor import CommandExecutor
-import command_groups
+from styles import apply_styles
 
-# Initialize session state
 def initialize_session_state():
     if 'command_history' not in st.session_state:
         st.session_state.command_history = []
     if 'command_executor' not in st.session_state:
         st.session_state.command_executor = CommandExecutor()
-    if 'current_command' not in st.session_state:
-        st.session_state.current_command = None
-    if 'interactive_input' not in st.session_state:
-        st.session_state.interactive_input = ''
-    if 'last_interactive_input' not in st.session_state:
-        st.session_state.last_interactive_input = ''
     if 'output_text' not in st.session_state:
         st.session_state.output_text = ''
     if 'progress_value' not in st.session_state:
         st.session_state.progress_value = 0.0
-    if 'page' not in st.session_state:
-        st.session_state.page = 'terminal'
-
 
 def format_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -35,7 +25,7 @@ def terminal_page():
     command = st.text_input(
         "Enter command:",
         key="command_input",
-        placeholder="Type your command here (e.g., ls, pwd, python)",
+        placeholder="Type your command here (e.g., ls, pwd, echo 'hello')",
         help="Enter a valid shell command to execute"
     )
 
@@ -49,19 +39,6 @@ def terminal_page():
             if stop:
                 st.session_state.command_executor.terminate_current_process()
                 st.error("Command execution stopped by user")
-
-    # Interactive input section
-    if st.session_state.command_executor.is_interactive():
-        st.info("🖥️ Interactive session is active")
-        interactive_input = st.text_input(
-            "Interactive Input:",
-            key="interactive_input",
-            placeholder="Enter input for the running command...",
-            help="Type your input and press Enter to send it to the running command"
-        )
-        if interactive_input and interactive_input != st.session_state.last_interactive_input:
-            st.session_state.last_interactive_input = interactive_input
-            st.session_state.command_executor.send_input(interactive_input)
 
     # Main output area
     st.markdown("### Command Output")
@@ -92,8 +69,6 @@ def terminal_page():
                 status_placeholder,
                 cmd_entry
             )
-            st.rerun()
-
         except Exception as e:
             st.error(f"Failed to execute command: {str(e)}")
     elif execute:
@@ -106,10 +81,9 @@ def terminal_page():
 
     # Display current output
     if st.session_state.output_text:
-        output_placeholder.code(st.session_state.output_text, language="bash") #Added language here.
+        output_placeholder.code(st.session_state.output_text, language="bash")
     if st.session_state.progress_value > 0:
         progress_placeholder.progress(st.session_state.progress_value)
-
 
 def main():
     # Set page config
@@ -122,22 +96,11 @@ def main():
     # Initialize session state
     initialize_session_state()
 
-    # Sidebar with navigation and command history
+    # Apply custom styles
+    apply_styles()
+
+    # Sidebar with command history
     with st.sidebar:
-        st.title("Navigation")
-
-        # Navigation buttons
-        if st.button("Terminal", key="nav_terminal", use_container_width=True):
-            st.session_state.page = 'terminal'
-            st.rerun()
-
-        if st.button("Command Groups", key="nav_cmd_groups", use_container_width=True):
-            st.session_state.page = 'command_groups'
-            st.rerun()
-
-        st.markdown("---")
-
-        # Command History section
         st.title("Command History")
         if st.session_state.command_history:
             for cmd in reversed(st.session_state.command_history):
@@ -147,11 +110,8 @@ def main():
                     st.text(f"Status: {status} (Return code: {cmd['return_code']})")
                 st.markdown("---")
 
-    # Display page based on selection
-    if st.session_state.page == 'terminal':
-        terminal_page()
-    else:
-        command_groups.run()
+    # Main terminal page
+    terminal_page()
 
 if __name__ == "__main__":
     main()
