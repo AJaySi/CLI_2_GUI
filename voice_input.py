@@ -41,9 +41,10 @@ def voice_input_component():
                 recognition.onresult = (event) => {
                     const text = event.results[0][0].transcript;
                     window.parent.postMessage({
-                        type: 'voice_input',
-                        text: text
+                        type: 'streamlit:setComponentValue',
+                        value: text
                     }, '*');
+                    status.textContent = 'Command received: ' + text;
                 };
 
                 recognition.onerror = (event) => {
@@ -70,7 +71,7 @@ def voice_input_component():
             if (!recognition) {
                 initSpeechRecognition();
             }
-            
+
             if (recognition) {
                 if (voiceButton.style.backgroundColor === 'rgb(231, 76, 60)') {
                     recognition.stop();
@@ -86,24 +87,22 @@ def voice_input_component():
 
 def handle_voice_input():
     """Handle voice input from the JavaScript component"""
-    voice_key = "voice_command"
-    if voice_key not in st.session_state:
-        st.session_state[voice_key] = ""
-    
-    components.html(
-        f"""
+    # Create a placeholder for voice input results
+    result = components.html(
+        """
         <script>
-        window.addEventListener('message', function(e) {{
-            if (e.data.type === 'voice_input') {{
-                window.parent.postMessage({{
+        // Listen for voice input messages
+        window.addEventListener('message', function(e) {
+            if (e.data.type === 'streamlit:setComponentValue') {
+                window.parent.postMessage({
                     type: 'streamlit:setComponentValue',
-                    value: e.data.text
-                }}, '*');
-            }}
-        }});
+                    value: e.data.value
+                }, '*');
+            }
+        });
         </script>
         """,
-        height=0,
+        height=0
     )
-    
-    return st.session_state.get(voice_key, "")
+
+    return result if result is not None else ""
