@@ -37,14 +37,42 @@ def apply_styles():
         background-color: #2980b9;
     }
 
+    .stButton button:disabled {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+    }
+
     /* Success message styling */
     .element-container .stSuccess {
         background-color: #27ae60;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
     }
 
     /* Error message styling */
     .element-container .stError {
         background-color: #e74c3c;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+    }
+
+    /* Info message styling */
+    .element-container .stInfo {
+        background-color: #3498db;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+    }
+
+    /* Validation feedback styling */
+    .command-valid {
+        border-color: #27ae60 !important;
+    }
+
+    .command-invalid {
+        border-color: #e74c3c !important;
     }
 
     /* Sidebar styling */
@@ -71,6 +99,13 @@ def apply_styles():
     /* Make progress bar more visible */
     .stProgress > div > div {
         height: 10px !important;
+    }
+
+    /* Suggestion styling */
+    .suggestion {
+        font-style: italic;
+        color: #3498db;
+        margin-top: 0.25rem;
     }
     </style>
     """, unsafe_allow_html=True)
