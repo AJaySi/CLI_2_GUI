@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 class CommandStructure:
     def __init__(self):
@@ -125,6 +125,38 @@ class CommandStructure:
         if subcategory:
             return self.commands.get(category, {}).get("subcommands", {}).get(subcategory, {}).get("subcommands", {})
         return self.commands.get(category, {}).get("subcommands", {})
+
+    def search_commands(self, query: str) -> List[Tuple[str, str, str]]:
+        """
+        Search through all commands and subcommands
+        Returns: List of tuples (full_path, command_type, description)
+        """
+        results = []
+        query = query.lower()
+
+        def search_nested(category: str, data: dict, current_path: List[str]):
+            if "title" in data:
+                title = data["title"].lower()
+                if query in title:
+                    results.append((" ".join(current_path), "category", data["title"]))
+
+            if "subcommands" in data:
+                subcommands = data["subcommands"]
+                for cmd, value in subcommands.items():
+                    cmd_path = current_path + [cmd]
+                    if isinstance(value, dict):
+                        search_nested(category, value, cmd_path)
+                    else:
+                        if query in cmd.lower() or query in value.lower():
+                            results.append((" ".join(cmd_path), "command", value))
+
+        # Search through all categories
+        for category, data in self.commands.items():
+            if query in category.lower():
+                results.append((category, "category", data.get("title", "")))
+            search_nested(category, data, [category])
+
+        return results
 
     def get_command_description(self, category: str, command: str) -> str:
         """Get description for a command"""

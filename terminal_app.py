@@ -52,13 +52,42 @@ def nsds_command_center():
     """NSDS Command Center UI"""
     st.sidebar.title("NSDS Command Center")
 
-    # Get main categories
-    categories = st.session_state.nsds_commands.get_main_categories()
+    # Add search bar at the top of the sidebar
+    search_query = st.sidebar.text_input(
+        "🔍 Search Commands",
+        key="command_search",
+        placeholder="Search commands...",
+        help="Search for commands across all categories"
+    )
+
+    # Show search results if there's a query
+    if search_query:
+        st.sidebar.markdown("### Search Results")
+        results = st.session_state.nsds_commands.search_commands(search_query)
+
+        if results:
+            for path, cmd_type, description in results:
+                # Create a button for each result
+                if st.sidebar.button(
+                    f"➡️ {path}",
+                    key=f"search_{path}",
+                    help=description,
+                    use_container_width=True
+                ):
+                    # Set the category when a search result is clicked
+                    category = path.split()[0]
+                    st.session_state.selected_category = category
+                    st.rerun()
+        else:
+            st.sidebar.info("No matching commands found")
+
+        st.sidebar.markdown("---")
 
     # Display categories as a list in sidebar
     st.sidebar.markdown("### Command Categories")
 
     # Create clickable buttons for each category
+    categories = st.session_state.nsds_commands.get_main_categories()
     for category in categories:
         is_selected = st.session_state.selected_category == category
         button_style = "selected" if is_selected else ""
