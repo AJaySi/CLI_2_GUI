@@ -4,6 +4,33 @@ def apply_styles():
     # Apply custom CSS
     st.markdown("""
     <style>
+    /* Search input styling */
+    .stTextInput input {
+        background-color: #2d2d2d;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 4px;
+        padding: 8px 12px;
+    }
+
+    .stTextInput input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 1px #3498db;
+    }
+
+    .stTextInput input::placeholder {
+        color: #888;
+    }
+
+    /* Clear button styling */
+    [data-testid="clear_search"] {
+        height: 1.8rem !important;
+        width: 1.8rem !important;
+        min-height: 1.8rem !important;
+        padding: 0.2rem !important;
+        font-size: 0.7rem !important;
+    }
+
     /* Terminal-like styling */
     .stTextInput input {
         font-family: 'Courier New', monospace;
@@ -40,6 +67,10 @@ def apply_styles():
     .stButton button:disabled {
         background-color: #95a5a6;
         cursor: not-allowed;
+    }
+
+    .block-container {
+        padding-top: 2rem;
     }
 
     /* Tab styling */
@@ -130,6 +161,32 @@ def apply_styles():
         margin-bottom: 12px;
     }
 
+    /* Search result styling */
+    .search-result {
+        background-color: #1e1e1e;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        border: 1px solid #333;
+        transition: all 0.2s ease;
+    }
+
+    .search-result:hover {
+        background-color: #2d2d2d;
+        border-color: #3498db;
+    }
+
+    .search-result-path {
+        color: #3498db;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .search-result-description {
+        color: #bbb;
+        font-size: 12px;
+    }
     /* Validation feedback styling */
     .command-valid {
         border-color: #27ae60 !important;
@@ -172,49 +229,5 @@ def apply_styles():
         margin-top: 0.25rem;
     }
 
-    /* Search result styling */
-    .search-result {
-        background-color: #1e1e1e;
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 4px;
-        cursor: pointer;
-        border: 1px solid #333;
-        transition: all 0.2s ease;
-    }
-
-    .search-result:hover {
-        background-color: #2d2d2d;
-        border-color: #3498db;
-    }
-
-    .search-result-path {
-        color: #3498db;
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .search-result-description {
-        color: #bbb;
-        font-size: 12px;
-    }
-
-    /* Search input styling */
-    .stTextInput input {
-        background-color: #2d2d2d;
-        border: 1px solid #444;
-        color: white;
-        border-radius: 4px;
-        padding: 8px 12px;
-    }
-
-    .stTextInput input:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 1px #3498db;
-    }
-
-    .stTextInput input::placeholder {
-        color: #888;
-    }
     </style>
     """, unsafe_allow_html=True)
