@@ -50,7 +50,6 @@ def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeh
                 status_placeholder.error(data)
 
     except Empty:
-        # No more messages in queue
         pass
 
 def terminal_page():
@@ -58,42 +57,43 @@ def terminal_page():
     st.title("Web Terminal")
     st.markdown("Enter commands below to execute them. Use the sidebar to view command history.")
 
-    # Main command input
-    command = st.text_input(
-        "Enter command:",
-        key="command_input",
-        placeholder="Type your command here (e.g., ls, pwd, python)",
-        help="Enter a valid shell command to execute"
-    )
+    # Place command input and execute button side by side
+    col1, col2 = st.columns([5, 1])
 
-    # Execute and stop buttons
-    col1, col2 = st.columns([1, 4])
     with col1:
-        execute = st.button("Execute", key="execute_button", type="primary")
-    with col2:
-        if st.session_state.command_executor.is_running():
-            stop = st.button("Stop", key="stop_button", type="secondary")
-            if stop:
-                st.session_state.command_executor.terminate_current_process()
-                st.error("Command execution stopped by user")
+        command = st.text_input(
+            "Enter command",
+            key="command_input",
+            placeholder="Type your command here (e.g., ls, pwd, python)",
+            label_visibility="collapsed"
+        )
 
-    # Interactive input section
+    with col2:
+        execute = st.button("Execute", key="execute_button", type="primary", use_container_width=True)
+
+    # Stop button (only shown when command is running)
+    if st.session_state.command_executor.is_running():
+        if st.button("Stop", key="stop_button", type="secondary"):
+            st.session_state.command_executor.terminate_current_process()
+            st.error("Command execution stopped by user")
+
+    # Interactive input section (only shown when in interactive mode)
     if st.session_state.command_executor.is_interactive():
         st.info("🖥️ Interactive session active - Enter commands below")
 
-        # Create two columns for input field and send button
-        col1, col2 = st.columns([4, 1])
+        # Place interactive input and send button side by side
+        col1, col2 = st.columns([5, 1])
 
         with col1:
             interactive_input = st.text_input(
-                "Interactive Input:",
+                "Interactive Input",
                 key="interactive_input",
                 placeholder="Enter your command here...",
-                help="Type your command and press Enter or click Send"
+                label_visibility="collapsed"
             )
 
         with col2:
-            send = st.button("Send", key="send_button")
+            send = st.button("Send", key="send_button", type="primary", use_container_width=True)
 
         # Handle interactive input
         if send or (interactive_input and interactive_input.strip()):

@@ -35,16 +35,11 @@ class CommandExecutor:
             return False
 
         try:
-            # Add newline if not present
             if not input_text.endswith('\n'):
                 input_text += '\n'
-
-            # Show input in output
             input_display = f">>> {input_text}"
             self._output_buffer += input_display
             self._output_queue.put(('output', input_display))
-
-            # Send to process
             os.write(self._master_fd, input_text.encode())
             return True
         except OSError as e:
@@ -61,25 +56,19 @@ class CommandExecutor:
         self._output_buffer = ""
         start_time = time.time()
 
-        # Check if command might be interactive
         interactive_commands = ['python', 'python3', 'ipython', 'node', 'mysql']
         self._interactive = any(cmd in command.split()[0] for cmd in interactive_commands)
 
         def run_command():
             try:
                 if self._interactive:
-                    # Create PTY
+                    # Interactive mode with PTY
                     self._master_fd, self._slave_fd = pty.openpty()
-
-                    # Configure PTY
                     term_size = struct.pack('HHHH', 24, 80, 0, 0)
                     fcntl.ioctl(self._slave_fd, termios.TIOCSWINSZ, term_size)
-
-                    # Set non-blocking mode
                     flags = fcntl.fcntl(self._master_fd, fcntl.F_GETFL)
                     fcntl.fcntl(self._master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-                    # Start process
                     self._process = subprocess.Popen(
                         command.split(),
                         stdin=self._slave_fd,
@@ -88,14 +77,11 @@ class CommandExecutor:
                         env=os.environ.copy()
                     )
 
-                    # Close slave fd in parent
                     os.close(self._slave_fd)
                     self._slave_fd = None
 
-                    # Initial delay for startup
-                    time.sleep(0.1)
+                    time.sleep(0.1)  # Initial delay for startup
 
-                    # Read loop
                     while self._is_running and self._process.poll() is None:
                         r, _, _ = select.select([self._master_fd], [], [], 0.1)
                         if self._master_fd in r:
@@ -105,10 +91,9 @@ class CommandExecutor:
                                     self._output_buffer += data
                                     self._output_queue.put(('output', data))
                             except OSError as e:
-                                if e.errno != 11:  # Ignore EAGAIN
+                                if e.errno != 11:  # EAGAIN
                                     break
 
-                        # Update progress
                         elapsed = time.time() - start_time
                         self._output_queue.put(('progress', min(0.99, elapsed / 10.0)))
 
@@ -120,30 +105,30 @@ class CommandExecutor:
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         text=True,
-                        bufsize=1,
-                        universal_newlines=True
+                        bufsize=1
                     )
 
-                    # Read output in real-time
+                    # Handle stdout and stderr in real-time
                     while self._is_running and self._process.poll() is None:
-                        # Read stdout
-                        stdout_line = self._process.stdout.readline()
-                        if stdout_line:
-                            self._output_buffer += stdout_line
-                            self._output_queue.put(('output', stdout_line))
+                        # Check stdout
+                        stdout_data = self._process.stdout.read1().decode(errors='replace')
+                        if stdout_data:
+                            self._output_buffer += stdout_data
+                            self._output_queue.put(('output', stdout_data))
 
-                        # Read stderr
-                        stderr_line = self._process.stderr.readline()
-                        if stderr_line:
-                            error_line = f"ERROR: {stderr_line}"
-                            self._output_buffer += error_line
-                            self._output_queue.put(('output', error_line))
+                        # Check stderr
+                        stderr_data = self._process.stderr.read1().decode(errors='replace')
+                        if stderr_data:
+                            error_text = f"ERROR: {stderr_data}"
+                            self._output_buffer += error_text
+                            self._output_queue.put(('output', error_text))
 
                         # Update progress
                         elapsed = time.time() - start_time
                         self._output_queue.put(('progress', min(0.99, elapsed / 10.0)))
+                        time.sleep(0.05)  # Small delay to prevent CPU overuse
 
-                    # Get remaining output
+                    # Get any remaining output
                     remaining_out, remaining_err = self._process.communicate()
                     if remaining_out:
                         self._output_buffer += remaining_out
