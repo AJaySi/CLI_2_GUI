@@ -84,6 +84,30 @@ def nsds_command_center():
         if st.button("❌", help="Clear search", key="clear_search"):
             search_query = ""
 
+    # Show search results if there's a query
+    if search_query:
+        st.sidebar.markdown("### Search Results")
+        results = st.session_state.nsds_commands.search_commands(search_query)
+
+        if results:
+            for idx, (path, cmd_type, description) in enumerate(results):
+                # Create a button for each result with unique key
+                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
+                if st.sidebar.button(
+                    f"➡️ {path}",
+                    key=safe_key,
+                    help=description,
+                    use_container_width=True
+                ):
+                    # Set the category when a search result is clicked
+                    category = path.split()[0]
+                    st.session_state.selected_category = category
+                    st.rerun()
+        else:
+            st.sidebar.info("No matching commands found")
+
+        st.sidebar.markdown("---")
+
     # Display categories as a list in sidebar
     st.sidebar.markdown("### Command Categories")
 
@@ -108,31 +132,8 @@ def nsds_command_center():
             for cmd in reversed(st.session_state.command_history):
                 st.text(f"[{cmd['timestamp']}] {cmd['command']}")
 
-    # Main panel content - show search results or category details
-    if search_query:
-        # Only show search results when there's actual input
-        st.markdown("### Search Results")
-        results = st.session_state.nsds_commands.search_commands(search_query)
-
-        if results:
-            for idx, (path, cmd_type, description) in enumerate(results):
-                # Create a button for each result with unique key
-                safe_key = f"search_result_{idx}_{path.replace(' ', '_')}"
-                if st.button(
-                    f"➡️ {path}",
-                    key=safe_key,
-                    help=description,
-                    use_container_width=True
-                ):
-                    # Set the category when a search result is clicked
-                    category = path.split()[0]
-                    st.session_state.selected_category = category
-                    st.rerun()
-        else:
-            st.info("No matching commands found")
-
-    elif st.session_state.selected_category:
-        # Show category details when no search is active
+    # Main panel content - show category details
+    if st.session_state.selected_category:
         selected_category = st.session_state.selected_category
 
         # Show category title and description with reduced spacing
