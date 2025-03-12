@@ -108,211 +108,161 @@ def update_output_area(output_placeholder, status_placeholder):
         st.error(f"Error updating output: {str(e)}")
 
 def nsds_basic_commands():
-    """Display professional NSDS command sidebar based on original CLI structure"""
-    st.sidebar.title("NSDS Command Center")
-    
-    # Accessibility and theme settings moved to right sidebar
-    
-    # Command Tree button - Shows all commands
-    if st.sidebar.button("📋 Show All Commands", use_container_width=True, help="Display complete command tree"):
-        run_nsds_command("nsds -t")
-    
-    # Auth Management
-    with st.sidebar.expander("🔑 Auth Management", expanded=False):
-        st.markdown("**Authentication Commands**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("Show", use_container_width=True, help="Display current auth configuration"):
-                run_nsds_command("nsds auth show")
-            if st.button("Edit", use_container_width=True, help="Edit auth configuration"):
-                run_nsds_command("nsds auth edit")
-        with col2:
-            if st.button("Init", use_container_width=True, help="Initialize authentication"):
-                run_nsds_command("nsds auth init")
-            if st.button("Clean", use_container_width=True, help="Remove auth configuration"):
-                run_nsds_command("nsds auth clean")
-        if st.button("Commit Changes", use_container_width=True, help="Commit edited auth configuration"):
-            run_nsds_command("nsds auth commit")
-    
-    # Cluster Management
-    with st.sidebar.expander("🌐 Cluster Management", expanded=False):
-        st.markdown("**Cluster Commands**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("Status", use_container_width=True, help="Show cluster status"):
-                run_nsds_command("nsds cluster status")
-            if st.button("Init", use_container_width=True, help="Initialize cluster"):
-                run_nsds_command("nsds cluster init")
-            if st.button("Start", use_container_width=True, help="Start services on all nodes"):
-                run_nsds_command("nsds cluster start")
-        with col2:
-            if st.button("Stop", use_container_width=True, help="Stop services on all nodes"):
-                run_nsds_command("nsds cluster stop")
-            if st.button("Restart", use_container_width=True, help="Restart services on all nodes"):
-                run_nsds_command("nsds cluster restart")
-            if st.button("Destroy", use_container_width=True, help="Remove NSDS components"):
-                run_nsds_command("nsds cluster destroy")
-    
-    # Configuration Management
-    with st.sidebar.expander("⚙️ Configuration", expanded=True):
-        # Cluster config
-        st.markdown("**Cluster Config**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List Configs", use_container_width=True, help="List cluster configurations"):
-                run_nsds_command("nsds config cluster list")
-        with col2:
-            if st.button("Backup", use_container_width=True, help="Backup configurations"):
-                run_nsds_command("nsds config cluster backup")
+    """Display professional NSDS command sidebar based on the new design reference"""
+    with st.sidebar:
+        st.title("NSDS Command Center")
         
-        # NFS config
-        st.markdown("**NFS Config**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("NFS List", use_container_width=True, help="List NFS configuration"):
-                run_nsds_command("nsds config nfs list")
-            if st.button("NFS Enable", use_container_width=True, help="Enable NFS service"):
-                run_nsds_command("nsds config nfs enable")
-        with col2:
-            if st.button("NFS Disable", use_container_width=True, help="Disable NFS service"):
-                run_nsds_command("nsds config nfs disable")
-            if st.button("NFS Update", use_container_width=True, help="Update NFS configuration"):
-                run_nsds_command("nsds config nfs update")
+        # SHOW ALL COMMANDS button at the top with document icon (matches screenshot)
+        if st.button("📄 SHOW ALL COMMANDS", use_container_width=True, type="primary"):
+            run_nsds_command("nsds -t")
         
-        # SMB config
-        st.markdown("**SMB Config**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("SMB List", use_container_width=True, help="List SMB configuration"):
-                run_nsds_command("nsds config smb list")
-            if st.button("SMB Enable", use_container_width=True, help="Enable SMB service"):
-                run_nsds_command("nsds config smb enable")
-        with col2:
-            if st.button("SMB Disable", use_container_width=True, help="Disable SMB service"):
-                run_nsds_command("nsds config smb disable")
-            if st.button("SMB Update", use_container_width=True, help="Update SMB configuration"):
-                run_nsds_command("nsds config smb update")
+        # Auth Management - with light background and cleaner layout
+        with st.expander("🔑 Auth Management", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("SHOW", help="Display current auth configuration"):
+                    run_nsds_command("nsds auth show")
+                if st.button("EDIT", help="Edit auth configuration"):
+                    run_nsds_command("nsds auth edit")
+            with col2:
+                if st.button("INIT", help="Initialize authentication"):
+                    run_nsds_command("nsds auth init")
+                if st.button("CLEAN", help="Remove auth configuration"):
+                    run_nsds_command("nsds auth clean")
+        
+        # Cluster Management
+        with st.expander("🌐 Cluster Management", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("STATUS", help="Show cluster status"):
+                    run_nsds_command("nsds cluster status")
+                if st.button("INIT", help="Initialize cluster"):
+                    run_nsds_command("nsds cluster init")
+                if st.button("START", help="Start services on all nodes"):
+                    run_nsds_command("nsds cluster start")
+            with col2:
+                if st.button("STOP", help="Stop services on all nodes"):
+                    run_nsds_command("nsds cluster stop")
+                if st.button("RESTART", help="Restart services on all nodes"):
+                    run_nsds_command("nsds cluster restart")
+                if st.button("DESTROY", help="Remove NSDS components"):
+                    run_nsds_command("nsds cluster destroy")
+        
+        # Configuration Management
+        with st.expander("⚙️ Configuration", expanded=False):
+            # Create columns for all configuration options
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("LIST", help="List cluster configurations"):
+                    run_nsds_command("nsds config cluster list")
+                if st.button("NFS LIST", help="List NFS configuration"):
+                    run_nsds_command("nsds config nfs list")
+                if st.button("NFS ENABLE", help="Enable NFS service"):
+                    run_nsds_command("nsds config nfs enable")
+                if st.button("SMB LIST", help="List SMB configuration"):
+                    run_nsds_command("nsds config smb list")
+                if st.button("SMB ENABLE", help="Enable SMB service"):
+                    run_nsds_command("nsds config smb enable")
+                if st.button("FILE LIST", help="List config files"):
+                    run_nsds_command("nsds config file list")
+                if st.button("DOCKER LIST", help="List docker options"):
+                    run_nsds_command("nsds config docker list")
+            with col2:
+                if st.button("BACKUP", help="Backup configurations"):
+                    run_nsds_command("nsds config cluster backup")
+                if st.button("NFS DISABLE", help="Disable NFS service"):
+                    run_nsds_command("nsds config nfs disable")
+                if st.button("NFS UPDATE", help="Update NFS configuration"):
+                    run_nsds_command("nsds config nfs update")
+                if st.button("SMB DISABLE", help="Disable SMB service"):
+                    run_nsds_command("nsds config smb disable")
+                if st.button("SMB UPDATE", help="Update SMB configuration"):
+                    run_nsds_command("nsds config smb update")
+                if st.button("FILE UPDATE", help="Update config file"):
+                    run_nsds_command("nsds config file update")
+                if st.button("DOCKER UPDATE", help="Update docker options"):
+                    run_nsds_command("nsds config docker update")
+        
+        # Export Management
+        with st.expander("📁 Export Management", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("NFS LIST", key="nfs_list", help="List NFS exports"):
+                    run_nsds_command("nsds export nfs list")
+                if st.button("NFS ADD", help="Add NFS export"):
+                    run_nsds_command("nsds export nfs add")
+                if st.button("SMB LIST", key="smb_list", help="List SMB shares"):
+                    run_nsds_command("nsds export smb list")
+                if st.button("SMB ADD", help="Add SMB share"):
+                    run_nsds_command("nsds export smb add")
+            with col2:
+                if st.button("NFS SHOW", help="Show NFS export details"):
+                    run_nsds_command("nsds export nfs show")
+                if st.button("NFS REMOVE", help="Remove NFS export"):
+                    run_nsds_command("nsds export nfs remove")
+                if st.button("SMB SHOW", help="Show SMB share details"):
+                    run_nsds_command("nsds export smb show")
+                if st.button("SMB REMOVE", help="Remove SMB share"):
+                    run_nsds_command("nsds export smb remove")
+        
+        # Node Management
+        with st.expander("🖥️ Node Management", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("STATUS", key="node_status", help="Show node status"):
+                    run_nsds_command("nsds node status")
+                if st.button("ADD", key="node_add", help="Add node to cluster"):
+                    run_nsds_command("nsds node add")
+                if st.button("START", key="node_start", help="Start services on node"):
+                    run_nsds_command("nsds node start")
+            with col2:
+                if st.button("REMOVE", key="node_remove", help="Remove node from cluster"):
+                    run_nsds_command("nsds node remove")
+                if st.button("STOP", key="node_stop", help="Stop services on node"):
+                    run_nsds_command("nsds node stop")
+                if st.button("RESTART", key="node_restart", help="Restart services on node"):
+                    run_nsds_command("nsds node restart")
+        
+        # Filesystem Management
+        with st.expander("💾 Filesystem Management", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("LIST", key="fs_list", help="List filesystems"):
+                    run_nsds_command("nsds filesystem list")
+                if st.button("ADD", key="fs_add", help="Add new filesystem"):
+                    run_nsds_command("nsds filesystem add")
+            with col2:
+                if st.button("REMOVE", key="fs_remove", help="Remove filesystem"):
+                    run_nsds_command("nsds filesystem remove")
+        
+        # Diagnostics & Prerequisites
+        with st.expander("🔍 Diagnostics", expanded=False):
+            if st.button("COLLECT BUNDLE", help="Collect diagnostic data"):
+                run_nsds_command("nsds diag collect")
                 
-        # File config
-        st.markdown("**File Config**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List Files", use_container_width=True, help="List config files"):
-                run_nsds_command("nsds config file list")
-        with col2:
-            if st.button("Update File", use_container_width=True, help="Update config file"):
-                run_nsds_command("nsds config file update")
-                
-        # Docker config
-        st.markdown("**Docker Config**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List Docker", use_container_width=True, help="List docker options"):
-                run_nsds_command("nsds config docker list")
-        with col2:
-            if st.button("Update Docker", use_container_width=True, help="Update docker options"):
-                run_nsds_command("nsds config docker update")
-    
-    # Export Management
-    with st.sidebar.expander("📁 Export Management", expanded=False):
-        # NFS exports
-        st.markdown("**NFS Exports**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List NFS", use_container_width=True, help="List NFS exports"):
-                run_nsds_command("nsds export nfs list")
-            if st.button("Add NFS", use_container_width=True, help="Add NFS export"):
-                run_nsds_command("nsds export nfs add")
-        with col2:
-            if st.button("Show NFS", use_container_width=True, help="Show NFS export details"):
-                run_nsds_command("nsds export nfs show")
-            if st.button("Remove NFS", use_container_width=True, help="Remove NFS export"):
-                run_nsds_command("nsds export nfs remove")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("CHECK", help="Run prerequisite checks"):
+                    run_nsds_command("nsds prereq check")
+                if st.button("LIST CHECKS", help="List available checks"):
+                    run_nsds_command("nsds prereq list")
+            with col2:
+                if st.button("SHOW CHECK", help="Show check details"):
+                    run_nsds_command("nsds prereq show")
         
-        # SMB exports
-        st.markdown("**SMB Exports**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List SMB", use_container_width=True, help="List SMB shares"):
-                run_nsds_command("nsds export smb list")
-            if st.button("Add SMB", use_container_width=True, help="Add SMB share"):
-                run_nsds_command("nsds export smb add")
-        with col2:
-            if st.button("Show SMB", use_container_width=True, help="Show SMB share details"):
-                run_nsds_command("nsds export smb show")
-            if st.button("Remove SMB", use_container_width=True, help="Remove SMB share"):
-                run_nsds_command("nsds export smb remove")
-    
-    # Node Management
-    with st.sidebar.expander("🖥️ Node Management", expanded=False):
-        st.markdown("**Node Commands**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("Node Status", use_container_width=True, help="Show node status"):
-                run_nsds_command("nsds node status")
-            if st.button("Add Node", use_container_width=True, help="Add node to cluster"):
-                run_nsds_command("nsds node add")
-            if st.button("Start Node", use_container_width=True, help="Start services on node"):
-                run_nsds_command("nsds node start")
-        with col2:
-            if st.button("Remove Node", use_container_width=True, help="Remove node from cluster"):
-                run_nsds_command("nsds node remove")
-            if st.button("Stop Node", use_container_width=True, help="Stop services on node"):
-                run_nsds_command("nsds node stop")
-            if st.button("Restart Node", use_container_width=True, help="Restart services on node"):
-                run_nsds_command("nsds node restart")
-    
-    # Filesystem Management
-    with st.sidebar.expander("💾 Filesystem Management", expanded=False):
-        st.markdown("**Filesystem Commands**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List FS", use_container_width=True, help="List filesystems"):
-                run_nsds_command("nsds filesystem list")
-            if st.button("Add FS", use_container_width=True, help="Add new filesystem"):
-                run_nsds_command("nsds filesystem add")
-        with col2:
-            if st.button("Remove FS", use_container_width=True, help="Remove filesystem"):
-                run_nsds_command("nsds filesystem remove")
-    
-    # Diag & Prereq
-    with st.sidebar.expander("🔍 Diagnostics & Prereq", expanded=False):
-        st.markdown("**Diagnostic Tools**")
-        if st.button("Collect Support Bundle", use_container_width=True, help="Collect diagnostic data"):
-            run_nsds_command("nsds diag collect")
-            
-        st.markdown("**Prerequisite Checks**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("Run Checks", use_container_width=True, help="Run prerequisite checks"):
-                run_nsds_command("nsds prereq check")
-            if st.button("List Checks", use_container_width=True, help="List available checks"):
-                run_nsds_command("nsds prereq list")
-        with col2:
-            if st.button("Show Check", use_container_width=True, help="Show check details"):
-                run_nsds_command("nsds prereq show")
-    
-    # System Utilities
-    with st.sidebar.expander("🛠️ System Utilities", expanded=False):
-        st.markdown("**File Operations**")
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("List Files", use_container_width=True, help="List files in current directory"):
-                run_nsds_command("ls -la")
-            if st.button("Disk Space", use_container_width=True, help="Show disk space usage"):
-                run_nsds_command("df -h")
-        with col2:
-            if st.button("Current Dir", use_container_width=True, help="Show current directory"):
-                run_nsds_command("pwd")
-            if st.button("Process List", use_container_width=True, help="List running processes"):
-                run_nsds_command("ps aux | head -10")
-    
-    # Command history has been moved to the right sidebar
-    
-    # Add NSDS Help button
-    st.sidebar.markdown("---")
-    if st.sidebar.button("📚 NSDS Help & Documentation", use_container_width=True):
-        run_nsds_command("nsds --help")
+        # System Utilities - simplified
+        with st.expander("🛠️ System Commands", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("LIST FILES", help="List files"):
+                    run_nsds_command("ls -la")
+                if st.button("DISK SPACE", help="Show disk space usage"):
+                    run_nsds_command("df -h")
+            with col2:
+                if st.button("CURRENT DIR", help="Show current directory"):
+                    run_nsds_command("pwd")
+                if st.button("PROCESSES", help="List running processes"):
+                    run_nsds_command("ps aux | head -10")
 
 def run_nsds_command(command):
     """Helper function to set command in session state"""
@@ -534,93 +484,211 @@ def main():
         </style>
         """, unsafe_allow_html=True)
     
-    # Add CSS for right sidebar
+    # Add CSS for sidebars - both left and right
     st.markdown("""
     <style>
+        /* Left sidebar styling - matching the screenshot */
+        section[data-testid="stSidebar"] .block-container {
+            background-color: #f1f3f6;
+            border-right: 1px solid #e0e5ec;
+            padding: 1rem;
+        }
+        
+        /* Left sidebar title */
+        section[data-testid="stSidebar"] .block-container h1 {
+            color: #37474f;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #cfd8dc;
+        }
+        
+        /* Left sidebar sections */
+        section[data-testid="stSidebar"] .stExpander {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 0.8rem;
+            border: 1px solid #e0e5ec;
+            overflow: hidden;
+        }
+        
+        /* Left sidebar expander header */
+        section[data-testid="stSidebar"] .stExpander > div:first-child {
+            background-color: #f5f7fa;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #e0e5ec;
+        }
+        
+        /* Left sidebar button styling */
+        section[data-testid="stSidebar"] .stButton button {
+            background-color: #ffffff;
+            color: #455a64;
+            border: 1px solid #e0e5ec;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            margin: 0.25rem 0;
+            text-transform: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        section[data-testid="stSidebar"] .stButton button:hover {
+            background-color: #f5f7fa;
+            border-color: #cfd8dc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        
+        /* Show all commands button */
+        section[data-testid="stSidebar"] .stButton button[kind="primary"] {
+            background-color: #f5f7fa;
+            color: #607d8b;
+            border: 1px solid #cfd8dc;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+        }
+
         /* Right sidebar styling */
         [data-testid="stSidebarContent"] ~ div {
-            background-color: #21252b;
-            border-left: 1px solid #3b4048;
+            background-color: #2c3e50;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+        }
+        
+        /* Right sidebar title */
+        [data-testid="stSidebarContent"] ~ div h2 {
+            color: #ecf0f1;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         /* Right sidebar headers */
         [data-testid="stSidebarContent"] ~ div h3 {
-            color: #56b6c2; /* Different color from left sidebar - Atom cyan */
-            font-size: 1.2rem;
-            margin-top: 1.2rem;
-            margin-bottom: 0.7rem;
+            color: #3498db;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
             font-weight: 600;
             padding-bottom: 0.3rem;
-            border-bottom: 1px solid #3b4048;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Command history item in right sidebar */
-        .command-history-item {
-            background-color: #2c313a;
-            border: 1px solid #3b4048;
-            border-radius: 4px;
-            padding: 8px;
-            margin-bottom: 8px;
-            font-family: monospace;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        /* Right sidebar checkboxes */
+        [data-testid="stSidebarContent"] ~ div [data-testid="stCheckbox"] {
+            margin-bottom: 1rem;
         }
         
-        .command-history-item:hover {
-            background-color: #333842;
-            border-color: #56b6c2;
-        }
-        
-        .command-text {
-            color: #98c379; /* Atom green */
+        [data-testid="stSidebarContent"] ~ div [data-testid="stCheckbox"] label {
+            color: #ecf0f1;
             font-weight: 500;
         }
         
-        .timestamp {
-            color: #7a818e;
-            font-size: 0.8em;
-            margin-top: 4px;
-        }
-        
-        /* Right sidebar buttons */
+        /* Command history item in right sidebar */
         [data-testid="stSidebarContent"] ~ div .stButton button {
-            background-color: #2c313a;
-            color: #98c379;
-            border: 1px solid #3b4048;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ecf0f1;
+            border: none;
+            border-radius: 6px;
             text-align: left;
-            font-family: monospace;
-            margin-bottom: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 0.5rem;
             transition: all 0.2s ease;
+            font-size: 0.9rem;
+            width: 100%;
         }
         
         [data-testid="stSidebarContent"] ~ div .stButton button:hover {
-            background-color: #333842;
-            border-color: #56b6c2;
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        /* Info box in right sidebar */
+        [data-testid="stSidebarContent"] ~ div .stAlert {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #ecf0f1;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 6px;
+        }
+        
+        /* Analytics section in right sidebar */
+        [data-testid="stSidebarContent"] ~ div .stMarkdown {
+            color: #ecf0f1;
+        }
+        
+        [data-testid="stSidebarContent"] ~ div .stMarkdown strong {
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        [data-testid="stSidebarContent"] ~ div .stMarkdown code {
+            background-color: rgba(236, 240, 241, 0.1);
+            color: #2ecc71;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
         }
         
         /* High contrast version for accessibility mode */
+        .high-contrast section[data-testid="stSidebar"] .block-container {
+            background-color: #000000;
+            border-right: 2px solid #ffffff;
+        }
+        
+        .high-contrast section[data-testid="stSidebar"] .block-container h1 {
+            color: #ffffff;
+            border-bottom: 2px solid #ffffff;
+        }
+        
+        .high-contrast section[data-testid="stSidebar"] .stExpander {
+            background-color: #000080;
+            border: 2px solid #ffffff;
+        }
+        
+        .high-contrast section[data-testid="stSidebar"] .stButton button {
+            background-color: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            font-weight: bold;
+        }
+        
         .high-contrast [data-testid="stSidebarContent"] ~ div {
             background-color: #000000;
             border-left: 2px solid #ffffff;
         }
         
+        .high-contrast [data-testid="stSidebarContent"] ~ div h2,
         .high-contrast [data-testid="stSidebarContent"] ~ div h3 {
-            color: #00ffff;
+            color: #ffff00;
             border-bottom: 2px solid #ffffff;
         }
         
-        .high-contrast .command-history-item {
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stButton button {
             background-color: #000080;
+            color: #ffffff;
             border: 2px solid #ffffff;
         }
         
-        .high-contrast .command-text {
-            color: #00ff00;
-            font-weight: bold;
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stMarkdown {
+            color: #ffffff;
         }
         
-        .high-contrast .timestamp {
-            color: #ffffff;
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stMarkdown strong {
+            color: #ffff00;
+        }
+        
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stMarkdown code {
+            background-color: #000080;
+            color: #00ff00;
+            border: 1px solid #ffffff;
         }
     </style>
     """, unsafe_allow_html=True)
