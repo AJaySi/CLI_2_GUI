@@ -143,81 +143,143 @@ def main():
         layout="wide"
     )
     
-    # Apply custom CSS directly
+    # Apply custom CSS directly with dark terminal theme
     st.markdown("""
     <style>
-        /* Main app styling */
+        /* Main app styling with dark terminal-like theme */
         .main .block-container {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        
+        /* Make entire background dark */
+        .stApp {
+            background-color: #1e1e1e;
         }
         
         /* Title styling */
         h1 {
-            color: #2c3e50;
+            color: #4caf50;  /* Terminal green */
             font-weight: 700;
             margin-bottom: 1rem;
+            border-bottom: 1px solid #4caf50;
+            padding-bottom: 0.5rem;
         }
         
         /* Header styling */
         h3 {
-            color: #34495e;
+            color: #4caf50;
             font-weight: 600;
             margin-top: 1.5rem;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid #eaeaea;
+            border-bottom: 1px solid #333;
+        }
+        
+        /* Text color */
+        p, span, div {
+            color: #d4d4d4;
         }
         
         /* Code output styling */
         pre {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            background-color: #000000;
+            color: #4caf50;
             padding: 1rem;
             border-radius: 5px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             overflow-x: auto;
+            border: 1px solid #333;
+        }
+        
+        /* Code blocks */
+        .stCodeBlock {
+            background-color: #000000;
         }
         
         /* Button styling */
         .stButton button {
-            border-radius: 4px;
+            border-radius: 0;
             font-weight: 500;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
         /* Primary button */
         .stButton button[data-baseweb="button"] {
-            background-color: #2196f3;
+            background-color: #4caf50;
+            color: black;
+            border: 1px solid #4caf50;
         }
         
         /* Secondary button */
         .stButton button[kind="secondary"] {
             background-color: #f44336;
-            color: white;
+            color: black;
+            border: 1px solid #f44336;
         }
         
         /* Command input styling */
         div[data-testid="stTextInput"] input {
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            background-color: #000000;
+            color: #4caf50;
+            border: 1px solid #4caf50;
+            border-radius: 0;
             padding: 0.5rem;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+        
+        /* Sidebar styling */
+        .css-1d391kg, .css-1lcbmhc {
+            background-color: #252526;
+        }
+        
+        /* Sidebar text */
+        .sidebar .sidebar-content {
+            background-color: #252526;
         }
         
         /* Voice button styling */
         #startButton {
             background-color: #4caf50;
-            color: white;
-            border: none;
+            color: black;
+            border: 1px solid #4caf50;
             padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border-radius: 0;
             cursor: pointer;
             font-weight: 500;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
         #startButton:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        
+        /* Status message styling */
+        div.stAlert {
+            background-color: #252526;
+            color: #d4d4d4;
+            border-radius: 0;
+        }
+        
+        /* Command history in sidebar */
+        .sidebar-content pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        
+        /* Custom blinking cursor */
+        .terminal-cursor::after {
+            content: "▋";
+            color: #4caf50;
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
     </style>
     """, unsafe_allow_html=True)
