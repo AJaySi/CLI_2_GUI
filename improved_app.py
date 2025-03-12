@@ -563,7 +563,7 @@ def main():
         /* Right sidebar title */
         [data-testid="stSidebarContent"] ~ div h2 {
             color: #ecf0f1;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 600;
             margin-bottom: 1.2rem;
             padding-bottom: 0.5rem;
@@ -579,6 +579,28 @@ def main():
             font-weight: 600;
             padding-bottom: 0.3rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Right sidebar expanders */
+        [data-testid="stSidebarContent"] ~ div .stExpander {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Right sidebar expander header */
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        /* Right sidebar expander content */
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:last-child {
+            padding: 0.8rem;
         }
         
         /* Right sidebar checkboxes */
@@ -671,6 +693,19 @@ def main():
             border-bottom: 2px solid #ffffff;
         }
         
+        /* High contrast right sidebar expanders */
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stExpander {
+            background-color: #000080;
+            border: 2px solid #ffffff;
+        }
+        
+        .high-contrast [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child {
+            background-color: #000000;
+            border-bottom: 2px solid #ffffff;
+            color: #ffff00;
+            font-weight: 700;
+        }
+        
         .high-contrast [data-testid="stSidebarContent"] ~ div .stButton button {
             background-color: #000080;
             color: #ffffff;
@@ -703,55 +738,61 @@ def main():
     
     # Right sidebar content for command suggestions and history
     with right_sidebar_col:
-        st.markdown("## Command Assistant")
+        st.markdown('<h2 style="font-size: 1.4rem; margin-bottom: 1rem;">Command Assistant</h2>', unsafe_allow_html=True)
         
-        # Accessibility settings section
-        st.markdown("### 👁️ Accessibility Settings")
-        
-        accessibility_toggle = st.checkbox(
-            "Enable Accessibility Mode", 
-            value=st.session_state.accessibility_mode,
-            help="High contrast mode with screen reader optimizations"
-        )
-        
-        # Update session state if toggle changed
-        if accessibility_toggle != st.session_state.accessibility_mode:
-            st.session_state.accessibility_mode = accessibility_toggle
-            st.rerun()  # Rerun the app to apply accessibility changes
-        
-        # Command History Section
-        st.markdown("### 📜 Command History")
-        
-        # Display command history in reverse order (newest first)
-        if st.session_state.command_history:
-            for i, cmd_entry in enumerate(reversed(st.session_state.command_history[-10:])):
-                # Create a clickable history item that runs the command when clicked
-                if st.button(
-                    f"{cmd_entry['command']}",
-                    key=f"history_{i}",
-                    help=f"Executed at {cmd_entry['timestamp']}"
-                ):
-                    st.session_state.next_command = cmd_entry['command']
-                    st.rerun()
-        else:
-            st.info("No commands executed yet.")
+        # Accessibility settings section in an expander
+        with st.expander("👁️ Accessibility Settings", expanded=False):
+            accessibility_toggle = st.checkbox(
+                "Enable Accessibility Mode", 
+                value=st.session_state.accessibility_mode,
+                help="High contrast mode with screen reader optimizations"
+            )
             
-        # Command Analytics Section if available in the suggestion engine
-        st.markdown("### 📊 Command Analytics")
+            # Explain what accessibility mode does
+            st.markdown("""
+            Accessibility mode provides:
+            - High contrast colors
+            - Larger text and buttons
+            - Screen reader optimizations
+            - Better keyboard navigation
+            """)
+            
+            # Update session state if toggle changed
+            if accessibility_toggle != st.session_state.accessibility_mode:
+                st.session_state.accessibility_mode = accessibility_toggle
+                st.rerun()  # Rerun the app to apply accessibility changes
         
-        # Get stats from the suggestion engine if available
-        if hasattr(st.session_state.suggestion_engine, 'get_command_statistics'):
-            stats = st.session_state.suggestion_engine.get_command_statistics()
+        # Command History Section in an expander
+        with st.expander("📜 Command History", expanded=True):
+            # Display command history in reverse order (newest first)
+            if st.session_state.command_history:
+                for i, cmd_entry in enumerate(reversed(st.session_state.command_history[-10:])):
+                    # Create a clickable history item that runs the command when clicked
+                    if st.button(
+                        f"{cmd_entry['command']}",
+                        key=f"history_{i}",
+                        help=f"Executed at {cmd_entry['timestamp']}"
+                    ):
+                        st.session_state.next_command = cmd_entry['command']
+                        st.rerun()
+            else:
+                st.info("No commands executed yet.")
             
-            # Display basic stats
-            st.markdown(f"**Total Commands:** {stats.get('total_commands', 0)}")
-            st.markdown(f"**Unique Commands:** {stats.get('unique_commands', 0)}")
-            
-            # Display most used commands
-            if stats.get('most_used'):
-                st.markdown("**Most Used Commands:**")
-                for cmd, count in stats.get('most_used', [])[:3]:
-                    st.markdown(f"- `{cmd}`: {count} times")
+        # Command Analytics Section in an expander
+        with st.expander("📊 Command Analytics", expanded=False):
+            # Get stats from the suggestion engine if available
+            if hasattr(st.session_state.suggestion_engine, 'get_command_statistics'):
+                stats = st.session_state.suggestion_engine.get_command_statistics()
+                
+                # Display basic stats
+                st.markdown(f"**Total Commands:** {stats.get('total_commands', 0)}")
+                st.markdown(f"**Unique Commands:** {stats.get('unique_commands', 0)}")
+                
+                # Display most used commands
+                if stats.get('most_used'):
+                    st.markdown("**Most Used Commands:**")
+                    for cmd, count in stats.get('most_used', [])[:3]:
+                        st.markdown(f"- `{cmd}`: {count} times")
     
     # Main area with improved accessibility
     with main_col:
