@@ -535,10 +535,16 @@ def main():
                 background: linear-gradient(to right, #0d253f, #1a3b5b);
                 padding: 0.75rem 1rem;
                 border-bottom: 1px solid rgba(100, 181, 246, 0.3);
-                color: white;
+                color: white !important;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.2s ease;
+            }
+            
+            /* All text elements inside expander header */
+            .main .stExpander > div:first-child p,
+            .main .stExpander > div:first-child span {
+                color: white !important;
             }
             
             .main .stExpander > div:first-child:hover {
@@ -549,6 +555,13 @@ def main():
             .main .stExpander > div:last-child {
                 padding: 1rem;
                 background-color: rgba(30, 40, 70, 0.5);
+            }
+            
+            /* Text content inside expander body */
+            .main .stExpander > div:last-child p, 
+            .main .stExpander > div:last-child span,
+            .main .stExpander > div:last-child div {
+                color: #e1e1e6 !important;
             }
         </style>
         """, unsafe_allow_html=True)
@@ -708,19 +721,39 @@ def main():
         
         /* Right sidebar expander header */
         [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child {
-            background: linear-gradient(to right, rgba(41, 128, 185, 0.2), rgba(52, 152, 219, 0.2));
+            background: linear-gradient(to right, rgba(41, 128, 185, 0.4), rgba(52, 152, 219, 0.3));
             padding: 0.8rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            color: #3498db;
+            color: #ecf0f1 !important;
             font-weight: 600;
             display: flex;
             align-items: center;
+        }
+        
+        /* All text elements inside right sidebar expander header */
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child p,
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child span,
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child div {
+            color: #ecf0f1 !important;
+        }
+        
+        /* Icon in expander header */
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:first-child span[aria-hidden="true"] {
+            color: #3498db !important;
+            margin-right: 0.5rem;
         }
         
         /* Right sidebar expander content */
         [data-testid="stSidebarContent"] ~ div .stExpander > div:last-child {
             padding: 1rem;
             background-color: rgba(30, 40, 50, 0.5);
+        }
+        
+        /* Text in right sidebar expander content */
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:last-child p,
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:last-child span,
+        [data-testid="stSidebarContent"] ~ div .stExpander > div:last-child div:not(.stButton) {
+            color: #ecf0f1 !important;
         }
         
         /* Right sidebar checkboxes */
