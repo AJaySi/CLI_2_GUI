@@ -574,6 +574,7 @@ def main():
             background-color: #f1f3f6;
             border-right: 1px solid #e0e5ec;
             padding: 1rem;
+            box-shadow: inset -5px 0 15px -5px rgba(0, 0, 0, 0.05);
         }
         
         /* Left sidebar title */
@@ -588,11 +589,11 @@ def main():
         
         /* Left sidebar sections */
         section[data-testid="stSidebar"] .stExpander {
-            background-color: #ffffff;
+            background-color: #f1f3f6;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             margin-bottom: 0.8rem;
-            border: 1px solid #e0e5ec;
+            border: 1px solid rgba(13, 37, 63, 0.3);
             overflow: hidden;
             transition: all 0.3s ease;
         }
@@ -604,13 +605,25 @@ def main():
         
         /* Left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child {
-            background: linear-gradient(to right, #f5f7fa, #f8f9fb);
+            background: linear-gradient(to right, #0d253f, #1a3b5b);
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid #e0e5ec;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             font-weight: 500;
-            color: #37474f;
+            color: white !important;
             display: flex;
             align-items: center;
+        }
+        
+        /* All text elements inside left sidebar expander header */
+        section[data-testid="stSidebar"] .stExpander > div:first-child p,
+        section[data-testid="stSidebar"] .stExpander > div:first-child span {
+            color: white !important;
+        }
+        
+        /* Icon in left sidebar expander header */
+        section[data-testid="stSidebar"] .stExpander > div:first-child span[aria-hidden="true"] {
+            color: #3498db !important;
+            margin-right: 0.5rem;
         }
         
         /* Left sidebar expander content */
