@@ -27,7 +27,7 @@ def initialize_session_state():
     if 'accessibility_mode' not in st.session_state:
         st.session_state.accessibility_mode = False
     if 'selected_theme' not in st.session_state:
-        st.session_state.selected_theme = "Default"
+        st.session_state.selected_theme = "Terminal Dark"
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -111,57 +111,7 @@ def nsds_basic_commands():
     """Display professional NSDS command sidebar based on original CLI structure"""
     st.sidebar.title("NSDS Command Center")
     
-    # Accessibility Mode toggle
-    st.sidebar.markdown("### 👁️ Accessibility Settings")
-    
-    # Add a screen reader only description that better explains accessibility features
-    st.sidebar.markdown("""
-    <div class="sr-only" aria-live="polite" role="status">
-        Accessibility mode provides high contrast colors, larger text, improved keyboard navigation,
-        and optimizations for screen readers.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    accessibility_toggle = st.sidebar.checkbox(
-        "Enable Accessibility Mode", 
-        value=st.session_state.accessibility_mode,
-        help="High contrast mode with screen reader optimizations"
-    )
-    
-    # Update session state if toggle changed
-    if accessibility_toggle != st.session_state.accessibility_mode:
-        st.session_state.accessibility_mode = accessibility_toggle
-        
-        # Add a screen reader announcement when mode changes
-        mode_status = "enabled" if accessibility_toggle else "disabled"
-        st.sidebar.markdown(f"""
-        <div class="sr-only" aria-live="assertive" role="alert">
-            Accessibility mode {mode_status}. Page will refresh to apply changes.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.rerun()  # Rerun the app to apply accessibility changes
-        
-    # Theme selector
-    if not st.session_state.accessibility_mode:  # Only show themes when not in accessibility mode
-        st.sidebar.markdown("### 🎨 Background Theme")
-        
-        # Get available themes
-        theme_names = get_theme_names()
-        
-        # Theme selector using radio buttons for better UX
-        selected_theme = st.sidebar.radio(
-            "Select Theme",
-            theme_names,
-            index=theme_names.index(st.session_state.selected_theme),
-            help="Change the background theme of the terminal",
-            label_visibility="collapsed"
-        )
-        
-        # Update theme if changed
-        if selected_theme != st.session_state.selected_theme:
-            st.session_state.selected_theme = selected_theme
-            st.rerun()  # Rerun to apply theme
+    # Accessibility and theme settings moved to right sidebar
     
     # Command Tree button - Shows all commands
     if st.sidebar.button("📋 Show All Commands", use_container_width=True, help="Display complete command tree"):
@@ -787,6 +737,40 @@ def main():
     # Right sidebar content for command suggestions and history
     with right_sidebar_col:
         st.markdown("## Command Assistant")
+        
+        # Accessibility settings section
+        st.markdown("### 👁️ Accessibility Settings")
+        
+        accessibility_toggle = st.checkbox(
+            "Enable Accessibility Mode", 
+            value=st.session_state.accessibility_mode,
+            help="High contrast mode with screen reader optimizations"
+        )
+        
+        # Update session state if toggle changed
+        if accessibility_toggle != st.session_state.accessibility_mode:
+            st.session_state.accessibility_mode = accessibility_toggle
+            st.rerun()  # Rerun the app to apply accessibility changes
+        
+        # Theme selector - only show when not in accessibility mode
+        if not st.session_state.accessibility_mode:
+            st.markdown("### 🎨 Background Theme")
+            
+            # Get available themes
+            theme_names = get_theme_names()
+            
+            # Theme selector using radio buttons for better UX
+            selected_theme = st.radio(
+                "Select Theme",
+                theme_names,
+                index=theme_names.index(st.session_state.selected_theme),
+                help="Change the background theme of the terminal"
+            )
+            
+            # Update theme if changed
+            if selected_theme != st.session_state.selected_theme:
+                st.session_state.selected_theme = selected_theme
+                st.rerun()  # Rerun to apply theme
         
         # Command History Section
         st.markdown("### 📜 Command History")
