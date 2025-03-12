@@ -116,19 +116,7 @@ def nsds_basic_commands():
         if st.button("📄 SHOW ALL COMMANDS", use_container_width=True, type="primary"):
             run_nsds_command("nsds -t")
         
-        # Auth Management - with blue-to-black gradient
-        # Use inline CSS to target the Auth Management expander specifically by its key text
-        st.markdown("""
-        <style>
-        /* Target the Auth Management expander by its key text */
-        section[data-testid="stSidebar"] .stExpander:has(div:first-child p:contains("🔑")) > div:first-child {
-            background: linear-gradient(135deg, #1e5799, #000000) !important;
-            color: white !important;
-            font-weight: 600 !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # Auth Management section
         with st.expander("🔑 Auth Management", expanded=False):
             col1, col2 = st.columns(2)
             with col1:
@@ -615,12 +603,12 @@ def main():
             transform: translateY(-1px);
         }
         
-        /* Left sidebar expander header */
+        /* Left sidebar expander header - updated with blue-to-black gradient for all expanders */
         section[data-testid="stSidebar"] .stExpander > div:first-child {
-            background: linear-gradient(to right, #3a7bd5, #9f5afd);
+            background: linear-gradient(135deg, #1e5799, #000000) !important;
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-weight: 600;
             color: white !important;
             display: flex;
             align-items: center;
