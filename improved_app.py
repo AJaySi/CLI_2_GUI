@@ -1018,7 +1018,7 @@ def main():
         
         # Command input area with voice input and execute button
         # Create 3 columns for: text input (reduced by 30%), voice button, and execute button
-        input_col, voice_col, execute_col = st.columns([4.2, 1, 1])
+        input_col, voice_col, execute_col = st.columns([4.2, 0.7, 1.3])
         
         # Command input field in the first column
         with input_col:
