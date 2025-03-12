@@ -1,7 +1,8 @@
 import streamlit as st
 import subprocess
-import time
+import threading
 from datetime import datetime
+import time
 
 def main():
     """Simplified terminal app to verify basic functionality"""
@@ -12,59 +13,112 @@ def main():
         layout="wide"
     )
     
-    # Title and instructions
+    # Initialize session state
+    if 'command_output' not in st.session_state:
+        st.session_state.command_output = ""
+    if 'running_command' not in st.session_state:
+        st.session_state.running_command = False
+    if 'command_process' not in st.session_state:
+        st.session_state.command_process = None
+    
+    # Page title
     st.title("Simple Web Terminal")
-    st.markdown("Enter commands below to execute them.")
+    st.write("Enter a command and click 'Execute' to run it.")
     
-    # Command input and execute button
-    col1, col2 = st.columns([5, 1])
+    # Command input
+    command = st.text_input("Command", placeholder="Enter command (e.g., ls -la)")
+    execute_button = st.button("Execute", type="primary")
     
+    # Add some basic shortcut buttons
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
-        command = st.text_input(
-            "Enter command",
-            placeholder="Type your command here (e.g., ls, pwd, python)",
-            label_visibility="collapsed"
-        )
-    
+        if st.button("List Files (ls -la)"):
+            command = "ls -la"
+            execute_button = True
     with col2:
-        execute = st.button("Execute", type="primary", use_container_width=True)
+        if st.button("Current Directory (pwd)"):
+            command = "pwd"
+            execute_button = True
+    with col3:
+        if st.button("System Info (uname -a)"):
+            command = "uname -a"
+            execute_button = True
+    with col4:
+        if st.button("Date & Time (date)"):
+            command = "date"
+            execute_button = True
     
     # Output area
-    st.markdown("### Command Output")
-    output_placeholder = st.empty()
+    st.write("### Command Output")
+    output_area = st.empty()
     
-    # Execute command if requested
-    if execute and command.strip():
-        try:
-            with st.spinner("Executing command..."):
-                # Execute the command
+    # Display current output
+    if st.session_state.command_output:
+        output_area.code(st.session_state.command_output)
+    
+    # Execute command
+    if execute_button and command:
+        # Clear previous output
+        st.session_state.command_output = ""
+        output_area.code("")
+        
+        # Mark as running
+        st.session_state.running_command = True
+        
+        # Show command being executed
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        st.session_state.command_output = f"Executing: {command}\n[{timestamp}]\n\n"
+        output_area.code(st.session_state.command_output)
+        
+        # Execute command in separate thread
+        def run_command():
+            try:
+                # Start the process
                 process = subprocess.Popen(
                     command,
                     shell=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    text=True
+                    text=True,
+                    bufsize=1
                 )
                 
-                output = ""
-                # Show output in real-time
-                for line in process.stdout:
-                    output += line
-                    output_placeholder.code(output)
+                # Store process reference
+                st.session_state.command_process = process
+                
+                # Read output in real-time
+                for line in iter(process.stdout.readline, ''):
+                    st.session_state.command_output += line
                 
                 # Wait for process to complete
-                process.wait()
+                return_code = process.wait()
                 
-                # Display final status
-                if process.returncode == 0:
-                    st.success(f"Command completed successfully (exit code: {process.returncode})")
-                else:
-                    st.error(f"Command failed with exit code: {process.returncode}")
+                # Add completion message
+                st.session_state.command_output += f"\n\nCommand completed with return code: {return_code}"
                 
-        except Exception as e:
-            st.error(f"Failed to execute command: {str(e)}")
-    elif execute:
-        st.error("Please enter a command")
+                # Mark as no longer running
+                st.session_state.running_command = False
+                st.session_state.command_process = None
+                
+            except Exception as e:
+                st.session_state.command_output += f"\n\nError: {str(e)}"
+                st.session_state.running_command = False
+                st.session_state.command_process = None
+        
+        # Start thread
+        command_thread = threading.Thread(target=run_command)
+        command_thread.daemon = True
+        command_thread.start()
+        
+        # Rerun to show initial output
+        st.rerun()
+    
+    # Update output if command is running
+    if st.session_state.running_command:
+        output_area.code(st.session_state.command_output)
+        # Add a small delay to prevent too frequent refreshes
+        time.sleep(0.1)
+        st.rerun()
 
 if __name__ == "__main__":
     main()
