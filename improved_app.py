@@ -605,11 +605,11 @@ def main():
         
         /* Left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child {
-            background: linear-gradient(to right, #0d253f, #1a3b5b);
+            background: linear-gradient(to right, #7ab8ff, #e2a8ff);
             padding: 0.75rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             font-weight: 500;
-            color: white !important;
+            color: #1a365d !important;
             display: flex;
             align-items: center;
         }
@@ -617,12 +617,13 @@ def main():
         /* All text elements inside left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child p,
         section[data-testid="stSidebar"] .stExpander > div:first-child span {
-            color: white !important;
+            color: #1a365d !important;
+            font-weight: 600;
         }
         
         /* Icon in left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child span[aria-hidden="true"] {
-            color: #3498db !important;
+            color: #2c5282 !important;
             margin-right: 0.5rem;
         }
         
@@ -661,8 +662,8 @@ def main():
         
         /* Show all commands button - special styling */
         section[data-testid="stSidebar"] .stButton button[kind="primary"] {
-            background: linear-gradient(to right, #0d253f, #1a3b5b) !important;
-            color: white !important;
+            background: linear-gradient(to right, #7ab8ff, #e2a8ff) !important;
+            color: #1a365d !important;
             border: none !important;
             width: 100% !important;
             text-align: center !important;
@@ -679,7 +680,7 @@ def main():
         }
         
         section[data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
-            background: linear-gradient(to right, #0f2c4a, #1e4268) !important;
+            background: linear-gradient(to right, #4393ff, #cf83ff) !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 3px 8px rgba(0,0,0,0.2) !important;
         }
