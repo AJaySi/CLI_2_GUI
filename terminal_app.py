@@ -313,7 +313,12 @@ def main():
     st.set_page_config(
         page_title="Web Terminal",
         page_icon="🖥️",
-        layout="wide"
+        layout="wide",
+        menu_items={
+            'Get Help': 'https://www.streamlit.io/community',
+            'Report a bug': 'https://github.com/streamlit/streamlit/issues',
+            'About': 'NSDS Command Center & Web Terminal Interface'
+        }
     )
 
     # Initialize session state
@@ -321,6 +326,11 @@ def main():
 
     # Apply custom styles
     apply_styles()
+
+    # Add a simple element to ensure page renders
+    if st.session_state.get('_test_element', None) is None:
+        st.session_state._test_element = True
+        st.info("Initializing Web Terminal Interface...")
 
     # Main terminal page
     terminal_page()
