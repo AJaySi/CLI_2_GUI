@@ -347,22 +347,41 @@ def main():
             .stButton button {
                 background-color: #ffffff !important;
                 color: #000000 !important;
-                font-weight: 700;
-                border: 2px solid #000000;
+                font-weight: 700 !important;
+                border: 2px solid #000000 !important;
+                border-radius: 5px !important;
+                font-size: 1.1rem !important;
+                padding: 0.6rem 1rem !important;
             }
             
-            /* Primary button - green */
+            /* Primary button - green with arrow */
             .stButton button[data-testid="baseButton-primary"] {
                 background-color: #00ff00 !important;
                 color: #000000 !important;
-                font-weight: 700;
+                font-weight: 700 !important;
+                border: 2px solid #000000 !important;
             }
             
             /* Secondary button - red */
             .stButton button[data-testid="baseButton-secondary"] {
                 background-color: #ff0000 !important;
                 color: #ffffff !important;
-                font-weight: 700;
+                font-weight: 700 !important;
+                border: 2px solid #ffffff !important;
+            }
+            
+            /* Keep the arrow for primary buttons even in high contrast mode */
+            .stButton button[data-testid="baseButton-primary"]::after {
+                content: " →" !important;
+                display: inline-block !important;
+                margin-left: 0.5rem !important;
+                font-size: 1.2rem !important;
+            }
+            
+            /* Hover effects for high contrast */
+            .stButton button:hover {
+                box-shadow: 0 0 0 3px #ffff00 !important;
+                transform: none !important; /* No movement, just focus indicator */
             }
             
             /* Input field - high contrast */
@@ -448,32 +467,51 @@ def main():
                 box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.3);
             }
             
-            /* Button styling */
+            /* Button styling - based on modern gradient design */
             .stButton button {
-                border-radius: 4px;
+                border-radius: 8px;
                 border: none;
                 font-weight: 500;
                 transition: all 0.2s ease;
-                text-transform: uppercase;
                 font-size: 0.9rem;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.3px;
+                background: linear-gradient(to right, #0d253f, #1a3b5b) !important;
+                color: white !important;
+                position: relative;
+                padding: 0.6rem 1rem;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* Add arrow icon to primary buttons */
+            .stButton button[data-testid="baseButton-primary"]::after {
+                content: " →";
+                display: inline-block;
+                margin-left: 0.5rem;
+                font-size: 1rem;
+                transition: transform 0.2s ease;
             }
             
             .stButton button:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(to right, #0f2c4a, #1e4268) !important;
             }
             
-            /* Primary button */
-            .stButton button[data-testid="baseButton-primary"] {
-                background-color: #1e88e5 !important;
-                color: white !important;
+            /* Arrow animation on hover */
+            .stButton button[data-testid="baseButton-primary"]:hover::after {
+                transform: translateX(3px);
             }
             
-            /* Secondary button */
+            /* Secondary button - maintain distinct styling */
             .stButton button[data-testid="baseButton-secondary"] {
-                background-color: #e53935 !important;
+                background: linear-gradient(to right, #b71c1c, #e53935) !important;
                 color: white !important;
+            }
+            
+            /* No arrow for secondary buttons */
+            .stButton button[data-testid="baseButton-secondary"]::after {
+                content: "";
+                margin-left: 0;
             }
             
             /* Status indicators */
@@ -521,36 +559,60 @@ def main():
             border-bottom: 1px solid #e0e5ec;
         }
         
-        /* Left sidebar button styling */
+        /* Override global button styling for left sidebar buttons */
         section[data-testid="stSidebar"] .stButton button {
-            background-color: #ffffff;
-            color: #455a64;
-            border: 1px solid #e0e5ec;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            padding: 0.5rem 0.75rem;
-            margin: 0.25rem 0;
-            text-transform: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: #ffffff !important; 
+            color: #455a64 !important;
+            border: 1px solid #e0e5ec !important;
+            border-radius: 4px !important;
+            font-size: 0.85rem !important;
+            font-weight: 500 !important;
+            padding: 0.5rem 0.75rem !important;
+            margin: 0.25rem 0 !important;
+            text-transform: none !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* Remove arrow from left sidebar buttons */
+        section[data-testid="stSidebar"] .stButton button::after {
+            content: "" !important;
+            margin-left: 0 !important;
         }
         
         section[data-testid="stSidebar"] .stButton button:hover {
-            background-color: #f5f7fa;
-            border-color: #cfd8dc;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            background: linear-gradient(to right, #f5f7fa, #f5f7fa) !important;
+            border-color: #cfd8dc !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08) !important;
         }
         
-        /* Show all commands button */
+        /* Show all commands button - special styling */
         section[data-testid="stSidebar"] .stButton button[kind="primary"] {
-            background-color: #f5f7fa;
-            color: #607d8b;
-            border: 1px solid #cfd8dc;
-            width: 100%;
-            text-align: center;
-            font-weight: 600;
+            background: linear-gradient(to right, #0d253f, #1a3b5b) !important;
+            color: white !important;
+            border: none !important;
+            width: 100% !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+        }
+        
+        /* Add arrow to primary button */
+        section[data-testid="stSidebar"] .stButton button[kind="primary"]::after {
+            content: " →" !important;
+            display: inline-block !important;
+            margin-left: 0.5rem !important;
+            transition: transform 0.2s ease !important;
+        }
+        
+        section[data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
+            background: linear-gradient(to right, #0f2c4a, #1e4268) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2) !important;
+        }
+        
+        section[data-testid="stSidebar"] .stButton button[kind="primary"]:hover::after {
+            transform: translateX(3px) !important;
         }
 
         /* Right sidebar styling */
