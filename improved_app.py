@@ -954,19 +954,92 @@ def main():
                             font-size: 0.85em;
                             margin-left: 10px;
                         }
+                        .suggestion-category {
+                            color: #61afef;
+                            font-size: 0.85em;
+                            margin-bottom: 4px;
+                            font-weight: 500;
+                        }
+                        .suggestion-button {
+                            background-color: #2c313a;
+                            border: 1px solid #4b5263;
+                            border-radius: 4px;
+                            margin-bottom: 4px;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            transition: background-color 0.2s;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .suggestion-button:hover {
+                            background-color: #3e4451;
+                        }
+                        .suggestion-button-icon {
+                            margin-right: 6px;
+                            color: #61afef;
+                        }
+                        /* Accessibility enhancements for suggestions */
+                        .high-contrast .suggestion-container {
+                            background-color: #000000;
+                            border: 2px solid #ffffff;
+                        }
+                        .high-contrast .suggestion-command {
+                            color: #ffffff;
+                            font-weight: bold;
+                        }
+                        .high-contrast .suggestion-description {
+                            color: #ffffff;
+                        }
                     </style>
-                    <div class="suggestion-container">
-                        <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">Suggestions:</p>
+                    <div class="suggestion-container" role="region" aria-label="Command Suggestions">
+                        <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">
+                            <span aria-hidden="true">💡</span> Contextual Suggestions:
+                        </p>
                     """, unsafe_allow_html=True)
                     
+                    # Group suggestions by their description type for better organization
+                    grouped_suggestions = {}
                     for suggestion in suggestions:
-                        if st.button(
-                            f"{suggestion['command']}",
-                            key=f"suggestion_{suggestion['command']}",
-                            help=suggestion['description']
-                        ):
-                            st.session_state.next_command = suggestion['command']
-                            st.rerun()
+                        desc_type = suggestion['description']
+                        
+                        # Extract category from description
+                        if "Recent command" in desc_type:
+                            category = "Recent Commands"
+                        elif "Frequently used" in desc_type:
+                            category = "Frequently Used"
+                        elif "Suggested next" in desc_type:
+                            category = "Suggested Next Actions"
+                        elif "current context" in desc_type:
+                            category = "Context-Aware Suggestions"
+                        elif "From history" in desc_type:
+                            category = "History Matches"
+                        else:
+                            category = "Command Suggestions"
+                            
+                        if category not in grouped_suggestions:
+                            grouped_suggestions[category] = []
+                        grouped_suggestions[category].append(suggestion)
+                    
+                    # Display suggestions by group with more contextual information
+                    for category, category_suggestions in grouped_suggestions.items():
+                        st.markdown(f"""
+                        <div class="suggestion-category" role="heading" aria-level="3">
+                            {category}:
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        for suggestion in category_suggestions:
+                            # Determine appropriate icon for suggestion type
+                            icon = "⏱️" if "Recent" in category else "🔄" if "Frequently" in category else "➡️" if "Next" in category else "📌" if "Context" in category else "🔍"
+                            
+                            # Create a clickable suggestion with better visual hierarchy
+                            if st.button(
+                                f"{suggestion['command']}",
+                                key=f"suggestion_{suggestion['command']}",
+                                help=suggestion['description']
+                            ):
+                                st.session_state.next_command = suggestion['command']
+                                st.rerun()
         
         # Voice input in the same row as command input
         with input_col2:
