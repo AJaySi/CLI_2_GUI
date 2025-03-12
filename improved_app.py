@@ -941,6 +941,11 @@ def main():
     with right_sidebar_col:
         st.markdown('<h2 style="font-size: 1.4rem; margin-bottom: 1rem;">Command Assistant</h2>', unsafe_allow_html=True)
         
+        # Mascot settings section in an expander
+        with st.expander("🤖 Mascot Settings", expanded=False):
+            # Use the mascot settings function
+            mascot_settings()
+        
         # Accessibility settings section in an expander
         with st.expander("👁️ Accessibility Settings", expanded=False):
             accessibility_toggle = st.checkbox(
@@ -1014,6 +1019,21 @@ def main():
             """, unsafe_allow_html=True)
         else:
             st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
+        
+        # Add mascot welcome message if enabled
+        if st.session_state.enable_mascot:
+            mascot_container = st.container()
+            # Show welcome message from mascot on first load
+            if 'mascot_welcomed' not in st.session_state:
+                render_mascot_reaction(container=mascot_container, reaction_type="welcome")
+                st.session_state.mascot_welcomed = True
+            # For subsequent usage, show reaction to idle or last command
+            elif not command and not st.session_state.is_command_running:
+                # Maybe show an idle message
+                render_mascot_reaction(container=mascot_container, reaction_type="idle")
+            # Clear container if no reaction to show
+            else:
+                mascot_container.empty()
     
         # Command input and execute button
         # Command section
