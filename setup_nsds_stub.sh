@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Create nsds stub in /tmp
+echo '#!/bin/bash
+
 # NSDS Command Stub for demonstration
 
 # Colors for output
@@ -228,4 +231,9 @@ case "$1" in
         fi
         ;;
 esac
+' > /tmp/nsds
 
+# Make it executable
+chmod +x /tmp/nsds
+
+echo "NSDS stub installed at /tmp/nsds"

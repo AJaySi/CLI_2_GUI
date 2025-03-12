@@ -98,41 +98,93 @@ def update_output_area(output_placeholder, status_placeholder):
         st.error(f"Error updating output: {str(e)}")
 
 def nsds_basic_commands():
-    """Display simple NSDS command buttons for common operations"""
-    st.sidebar.title("NSDS Quick Commands")
+    """Display enhanced NSDS command sidebar with comprehensive command groups"""
+    st.sidebar.title("NSDS Command Center")
     
-    # Basic command groups
-    st.sidebar.subheader("System")
-    if st.sidebar.button("System Info", use_container_width=True):
-        run_nsds_command("nsds system info")
-    if st.sidebar.button("Disk Usage", use_container_width=True):
-        run_nsds_command("nsds system disk-usage")
+    # System commands group
+    st.sidebar.subheader("System Management")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("System Info", use_container_width=True, help="Display system information"):
+            run_nsds_command("nsds system info")
+    with col2:
+        if st.button("Disk Usage", use_container_width=True, help="Show disk usage statistics"):
+            run_nsds_command("nsds system disk-usage")
+            
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("CPU Stats", use_container_width=True, help="Show CPU statistics"):
+            run_nsds_command("nsds system cpu-stats")
+    with col2:
+        if st.button("Memory Usage", use_container_width=True, help="Display memory usage"):
+            run_nsds_command("nsds system memory-usage")
         
-    st.sidebar.subheader("Network")
-    if st.sidebar.button("Check Connectivity", use_container_width=True):
-        run_nsds_command("nsds network check")
-    if st.sidebar.button("Show IP", use_container_width=True):
-        run_nsds_command("nsds network ip")
-        
-    st.sidebar.subheader("Utilities")
-    if st.sidebar.button("List Files", use_container_width=True):
-        run_nsds_command("ls -la")
-    if st.sidebar.button("Current Directory", use_container_width=True):
-        run_nsds_command("pwd")
+    # Network commands group
+    st.sidebar.subheader("Network Diagnostics")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("Check Conn", use_container_width=True, help="Check network connectivity"):
+            run_nsds_command("nsds network check")
+    with col2:
+        if st.button("Show IP", use_container_width=True, help="Display IP configuration"):
+            run_nsds_command("nsds network ip")
     
-    # Display command history    
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("Ping Test", use_container_width=True, help="Ping a remote host"):
+            run_nsds_command("nsds network ping google.com")
+    with col2:
+        if st.button("DNS Lookup", use_container_width=True, help="Perform DNS lookup"):
+            run_nsds_command("nsds network dns-lookup example.com")
+    
+    # Authentication & Configuration
+    st.sidebar.subheader("Auth & Config")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("Auth Status", use_container_width=True, help="Check authentication status"):
+            run_nsds_command("nsds auth status")
+    with col2:
+        if st.button("View Config", use_container_width=True, help="View configuration settings"):
+            run_nsds_command("nsds config view")
+    
+    # Application commands
+    st.sidebar.subheader("Application Tools")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("App Status", use_container_width=True, help="Check application status"):
+            run_nsds_command("nsds app status")
+    with col2:
+        if st.button("App Services", use_container_width=True, help="List running services"):
+            run_nsds_command("nsds app services")
+    
+    # File system utilities
+    st.sidebar.subheader("File System Utils")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("List Files", use_container_width=True, help="List files in current directory"):
+            run_nsds_command("ls -la")
+    with col2:
+        if st.button("Find Recent", use_container_width=True, help="Find recent files"):
+            run_nsds_command("find . -type f -mtime -1 | sort")
+    
+    # Display command history with better formatting 
     st.sidebar.markdown("---")
     if st.session_state.command_history:
         with st.sidebar.expander("Command History", expanded=False):
-            for cmd in reversed(st.session_state.command_history):
-                st.text(f"[{cmd['timestamp']}] {cmd['command']}")
+            for cmd in reversed(st.session_state.command_history[-10:]):  # Show last 10 commands
+                st.code(f"[{cmd['timestamp']}] {cmd['command']}")
+    
+    # Add NSDS Help button
+    st.sidebar.markdown("---")
+    if st.sidebar.button("NSDS Help & Documentation", use_container_width=True):
+        run_nsds_command("nsds --help")
 
 def run_nsds_command(command):
     """Helper function to set command in session state"""
-    # Replace 'nsds' with path to our stub
-    modified_command = command.replace('nsds ', '/tmp/nsds ')
-    # Set value for the next refresh
-    st.session_state.next_command = modified_command
+    # Use the nsds stub directly
+    # We don't need to replace the path as our stub is now installed at /tmp/nsds
+    # and will be found in the PATH when executing commands
+    st.session_state.next_command = command
     st.rerun()
 
 def main():
@@ -230,14 +282,73 @@ def main():
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
-        /* Sidebar styling */
-        .css-1d391kg, .css-1lcbmhc {
+        /* Enhanced Sidebar styling */
+        .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
+            background-color: #21252b;
+            border-right: 1px solid #3b4048;
+        }
+        
+        /* Sidebar text and content */
+        .sidebar .sidebar-content, section[data-testid="stSidebar"] {
             background-color: #21252b;
         }
         
-        /* Sidebar text */
-        .sidebar .sidebar-content {
-            background-color: #21252b;
+        /* Sidebar headers */
+        section[data-testid="stSidebar"] h1 {
+            color: #e5c07b;
+            font-size: 1.5rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #3b4048;
+        }
+        
+        /* Sidebar subheaders */
+        section[data-testid="stSidebar"] h2, 
+        section[data-testid="stSidebar"] h3, 
+        section[data-testid="stSidebar"] .stMarkdown h3 {
+            color: #c678dd;
+            font-size: 1.2rem;
+            margin-top: 1.2rem;
+            margin-bottom: 0.7rem;
+            font-weight: 600;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #3b4048;
+        }
+        
+        /* Sidebar button containers */
+        section[data-testid="stSidebar"] .stButton {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Sidebar button styling */
+        section[data-testid="stSidebar"] .stButton button {
+            background-color: #2c313a;
+            color: #abb2bf;
+            border: 1px solid #3b4048;
+            border-radius: 4px;
+            text-align: left;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            transition: all 0.2s ease;
+        }
+        
+        /* Sidebar button hover */
+        section[data-testid="stSidebar"] .stButton button:hover {
+            background-color: #333842;
+            border-color: #61afef;
+        }
+        
+        /* Sidebar separators */
+        section[data-testid="stSidebar"] hr {
+            border-color: #3b4048;
+            margin: 1.5rem 0;
+        }
+        
+        /* Sidebar expander */
+        .st-expanderContent {
+            background-color: #282c34;
+            border: 1px solid #3b4048;
+            border-radius: 4px;
+            padding: 0.5rem;
         }
         
         /* Voice button styling */
@@ -265,9 +376,12 @@ def main():
         }
         
         /* Command history in sidebar */
-        .sidebar-content pre {
-            background-color: #21252b;
+        .sidebar-content pre, section[data-testid="stSidebar"] code {
+            background-color: #2c313a;
             color: #98c379;
+            padding: 0.3rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
         
         /* Success messages */
