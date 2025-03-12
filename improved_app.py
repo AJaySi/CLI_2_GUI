@@ -1017,10 +1017,11 @@ def main():
             st.session_state.next_command = ''
         
         # Command input area with voice input and execute button
-        cmd_col1, cmd_col2 = st.columns([5, 1])
+        # Create 3 columns for: text input, voice button, and execute button
+        input_col, voice_col, execute_col = st.columns([6, 1, 1])
         
-        # Command input field
-        with cmd_col1:
+        # Command input field in the first column
+        with input_col:
             command = st.text_input(
                 "Enter command",
                 value=next_command if next_command else "", 
@@ -1029,14 +1030,20 @@ def main():
                 key="command_input"
             )
         
-        # Voice input and execute button
-        with cmd_col2:
+        # Voice input in the middle column
+        with voice_col:
+            # Create some vertical space to align with text input
+            st.markdown("<div style='padding-top: 5px;'></div>", unsafe_allow_html=True)
             # Voice input integration
             voice_text = handle_voice_input()
             if voice_text:
                 st.session_state.next_command = voice_text
                 st.rerun()
-                
+        
+        # Execute button in the third column
+        with execute_col:
+            # Create some vertical space to align with text input
+            st.markdown("<div style='padding-top: 5px;'></div>", unsafe_allow_html=True)
             # Execute button
             execute = st.button("Execute", type="primary", use_container_width=True)
             
