@@ -27,7 +27,7 @@ def initialize_session_state():
     if 'accessibility_mode' not in st.session_state:
         st.session_state.accessibility_mode = False
     if 'selected_theme' not in st.session_state:
-        st.session_state.selected_theme = "Terminal Dark"
+        st.session_state.selected_theme = "Blue to Purple"
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -751,26 +751,6 @@ def main():
         if accessibility_toggle != st.session_state.accessibility_mode:
             st.session_state.accessibility_mode = accessibility_toggle
             st.rerun()  # Rerun the app to apply accessibility changes
-        
-        # Theme selector - only show when not in accessibility mode
-        if not st.session_state.accessibility_mode:
-            st.markdown("### 🎨 Background Theme")
-            
-            # Get available themes
-            theme_names = get_theme_names()
-            
-            # Theme selector using radio buttons for better UX
-            selected_theme = st.radio(
-                "Select Theme",
-                theme_names,
-                index=theme_names.index(st.session_state.selected_theme),
-                help="Change the background theme of the terminal"
-            )
-            
-            # Update theme if changed
-            if selected_theme != st.session_state.selected_theme:
-                st.session_state.selected_theme = selected_theme
-                st.rerun()  # Rerun to apply theme
         
         # Command History Section
         st.markdown("### 📜 Command History")
