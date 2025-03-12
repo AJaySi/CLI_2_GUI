@@ -143,137 +143,149 @@ def main():
         layout="wide"
     )
     
-    # Apply custom CSS directly with dark terminal theme
+    # Apply custom CSS directly with Atom One Dark theme
     st.markdown("""
     <style>
-        /* Main app styling with dark terminal-like theme */
+        /* Main app styling with Atom One Dark theme */
         .main .block-container {
             padding-top: 2rem;
             padding-bottom: 2rem;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            background-color: #282c34;
+            color: #abb2bf;
         }
         
-        /* Make entire background dark */
+        /* Make entire background match Atom One Dark */
         .stApp {
-            background-color: #1e1e1e;
+            background-color: #282c34;
         }
         
         /* Title styling */
         h1 {
-            color: #4caf50;  /* Terminal green */
+            color: #61afef;  /* Atom blue */
             font-weight: 700;
             margin-bottom: 1rem;
-            border-bottom: 1px solid #4caf50;
+            border-bottom: 1px solid #3b4048;
             padding-bottom: 0.5rem;
         }
         
         /* Header styling */
         h3 {
-            color: #4caf50;
+            color: #c678dd; /* Atom purple */
             font-weight: 600;
             margin-top: 1.5rem;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #3b4048;
         }
         
         /* Text color */
         p, span, div {
-            color: #d4d4d4;
+            color: #abb2bf;
         }
         
         /* Code output styling */
         pre {
-            background-color: #000000;
-            color: #4caf50;
+            background-color: #21252b;
+            color: #98c379; /* Atom green */
             padding: 1rem;
             border-radius: 5px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             overflow-x: auto;
-            border: 1px solid #333;
+            border: 1px solid #3b4048;
         }
         
         /* Code blocks */
         .stCodeBlock {
-            background-color: #000000;
+            background-color: #21252b;
         }
         
         /* Button styling */
         .stButton button {
-            border-radius: 0;
+            border-radius: 4px;
             font-weight: 500;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
         /* Primary button */
         .stButton button[data-baseweb="button"] {
-            background-color: #4caf50;
-            color: black;
-            border: 1px solid #4caf50;
+            background-color: #61afef;
+            color: #282c34;
+            border: 1px solid #61afef;
         }
         
         /* Secondary button */
         .stButton button[kind="secondary"] {
-            background-color: #f44336;
-            color: black;
-            border: 1px solid #f44336;
+            background-color: #e06c75;
+            color: #282c34;
+            border: 1px solid #e06c75;
         }
         
         /* Command input styling */
         div[data-testid="stTextInput"] input {
-            background-color: #000000;
-            color: #4caf50;
-            border: 1px solid #4caf50;
-            border-radius: 0;
+            background-color: #21252b;
+            color: #98c379;
+            border: 1px solid #3b4048;
+            border-radius: 4px;
             padding: 0.5rem;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
         /* Sidebar styling */
         .css-1d391kg, .css-1lcbmhc {
-            background-color: #252526;
+            background-color: #21252b;
         }
         
         /* Sidebar text */
         .sidebar .sidebar-content {
-            background-color: #252526;
+            background-color: #21252b;
         }
         
         /* Voice button styling */
         #startButton {
-            background-color: #4caf50;
-            color: black;
-            border: 1px solid #4caf50;
+            background-color: #61afef;
+            color: #282c34;
+            border: 1px solid #61afef;
             padding: 0.5rem 1rem;
-            border-radius: 0;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
         
         #startButton:disabled {
-            background-color: #cccccc;
+            background-color: #5c6370;
             cursor: not-allowed;
         }
         
         /* Status message styling */
         div.stAlert {
-            background-color: #252526;
-            color: #d4d4d4;
-            border-radius: 0;
+            background-color: #21252b;
+            color: #abb2bf;
+            border-radius: 4px;
         }
         
         /* Command history in sidebar */
         .sidebar-content pre {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
+            background-color: #21252b;
+            color: #98c379;
+        }
+        
+        /* Success messages */
+        .element-container .stSuccess {
+            background-color: rgba(152, 195, 121, 0.2);
+            color: #98c379;
+        }
+        
+        /* Error messages */
+        .element-container .stError {
+            background-color: rgba(224, 108, 117, 0.2);
+            color: #e06c75;
         }
         
         /* Custom blinking cursor */
         .terminal-cursor::after {
             content: "▋";
-            color: #4caf50;
+            color: #61afef;
             animation: blink 1s step-end infinite;
         }
         

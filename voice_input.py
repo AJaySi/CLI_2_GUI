@@ -6,7 +6,7 @@ def voice_input_component():
     # JavaScript code for voice recognition
     voice_js = """
     <div style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace;">
-        <button id="startButton" style="background-color: #4caf50; color: black; border: 1px solid #4caf50; border-radius: 0; padding: 8px 12px; cursor: pointer; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button id="startButton" style="background-color: #61afef; color: #282c34; border: 1px solid #61afef; border-radius: 4px; padding: 8px 12px; cursor: pointer; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 8a3 3 0 0 0 3-3V3a3 3 0 0 0-6 0v2a3 3 0 0 0 3 3z"/>
                 <path d="M5 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
@@ -16,8 +16,8 @@ def voice_input_component():
             </svg>
             <span>Voice Input</span>
         </button>
-        <div id="status" style="margin-top:8px; color: #4caf50; font-size: 0.875rem;"></div>
-        <div id="result" style="margin-top:8px; min-height: 30px; padding: 8px; border: 1px solid #333; background-color: #000000; color: #4caf50;"></div>
+        <div id="status" style="margin-top:8px; color: #98c379; font-size: 0.875rem;"></div>
+        <div id="result" style="margin-top:8px; min-height: 30px; padding: 8px; border: 1px solid #3b4048; background-color: #21252b; color: #98c379; border-radius: 4px;"></div>
         
         <script>
             const startButton = document.getElementById('startButton');
@@ -58,8 +58,8 @@ def voice_input_component():
                     }
                     
                     resultDiv.innerHTML = 
-                        `<div style="color: #4caf50; font-weight: medium;">${finalTranscript}</div>` + 
-                        `<div style="color: #666666;">${interimTranscript}</div>`;
+                        `<div style="color: #98c379; font-weight: medium;">${finalTranscript}</div>` + 
+                        `<div style="color: #5c6370;">${interimTranscript}</div>`;
                 };
                 
                 recognition.onerror = (event) => {
