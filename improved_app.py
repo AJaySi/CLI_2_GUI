@@ -98,85 +98,213 @@ def update_output_area(output_placeholder, status_placeholder):
         st.error(f"Error updating output: {str(e)}")
 
 def nsds_basic_commands():
-    """Display enhanced NSDS command sidebar with comprehensive command groups"""
+    """Display professional NSDS command sidebar based on original CLI structure"""
     st.sidebar.title("NSDS Command Center")
     
-    # System commands group
-    st.sidebar.subheader("System Management")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("System Info", use_container_width=True, help="Display system information"):
-            run_nsds_command("nsds system info")
-    with col2:
-        if st.button("Disk Usage", use_container_width=True, help="Show disk usage statistics"):
-            run_nsds_command("nsds system disk-usage")
-            
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("CPU Stats", use_container_width=True, help="Show CPU statistics"):
-            run_nsds_command("nsds system cpu-stats")
-    with col2:
-        if st.button("Memory Usage", use_container_width=True, help="Display memory usage"):
-            run_nsds_command("nsds system memory-usage")
+    # Command Tree button - Shows all commands
+    if st.sidebar.button("📋 Show All Commands", use_container_width=True, help="Display complete command tree"):
+        run_nsds_command("nsds -t")
+    
+    # Auth Management
+    with st.sidebar.expander("🔑 Auth Management", expanded=False):
+        st.markdown("**Authentication Commands**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("Show", use_container_width=True, help="Display current auth configuration"):
+                run_nsds_command("nsds auth show")
+            if st.button("Edit", use_container_width=True, help="Edit auth configuration"):
+                run_nsds_command("nsds auth edit")
+        with col2:
+            if st.button("Init", use_container_width=True, help="Initialize authentication"):
+                run_nsds_command("nsds auth init")
+            if st.button("Clean", use_container_width=True, help="Remove auth configuration"):
+                run_nsds_command("nsds auth clean")
+        if st.button("Commit Changes", use_container_width=True, help="Commit edited auth configuration"):
+            run_nsds_command("nsds auth commit")
+    
+    # Cluster Management
+    with st.sidebar.expander("🌐 Cluster Management", expanded=False):
+        st.markdown("**Cluster Commands**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("Status", use_container_width=True, help="Show cluster status"):
+                run_nsds_command("nsds cluster status")
+            if st.button("Init", use_container_width=True, help="Initialize cluster"):
+                run_nsds_command("nsds cluster init")
+            if st.button("Start", use_container_width=True, help="Start services on all nodes"):
+                run_nsds_command("nsds cluster start")
+        with col2:
+            if st.button("Stop", use_container_width=True, help="Stop services on all nodes"):
+                run_nsds_command("nsds cluster stop")
+            if st.button("Restart", use_container_width=True, help="Restart services on all nodes"):
+                run_nsds_command("nsds cluster restart")
+            if st.button("Destroy", use_container_width=True, help="Remove NSDS components"):
+                run_nsds_command("nsds cluster destroy")
+    
+    # Configuration Management
+    with st.sidebar.expander("⚙️ Configuration", expanded=True):
+        # Cluster config
+        st.markdown("**Cluster Config**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List Configs", use_container_width=True, help="List cluster configurations"):
+                run_nsds_command("nsds config cluster list")
+        with col2:
+            if st.button("Backup", use_container_width=True, help="Backup configurations"):
+                run_nsds_command("nsds config cluster backup")
         
-    # Network commands group
-    st.sidebar.subheader("Network Diagnostics")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Check Conn", use_container_width=True, help="Check network connectivity"):
-            run_nsds_command("nsds network check")
-    with col2:
-        if st.button("Show IP", use_container_width=True, help="Display IP configuration"):
-            run_nsds_command("nsds network ip")
+        # NFS config
+        st.markdown("**NFS Config**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("NFS List", use_container_width=True, help="List NFS configuration"):
+                run_nsds_command("nsds config nfs list")
+            if st.button("NFS Enable", use_container_width=True, help="Enable NFS service"):
+                run_nsds_command("nsds config nfs enable")
+        with col2:
+            if st.button("NFS Disable", use_container_width=True, help="Disable NFS service"):
+                run_nsds_command("nsds config nfs disable")
+            if st.button("NFS Update", use_container_width=True, help="Update NFS configuration"):
+                run_nsds_command("nsds config nfs update")
+        
+        # SMB config
+        st.markdown("**SMB Config**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("SMB List", use_container_width=True, help="List SMB configuration"):
+                run_nsds_command("nsds config smb list")
+            if st.button("SMB Enable", use_container_width=True, help="Enable SMB service"):
+                run_nsds_command("nsds config smb enable")
+        with col2:
+            if st.button("SMB Disable", use_container_width=True, help="Disable SMB service"):
+                run_nsds_command("nsds config smb disable")
+            if st.button("SMB Update", use_container_width=True, help="Update SMB configuration"):
+                run_nsds_command("nsds config smb update")
+                
+        # File config
+        st.markdown("**File Config**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List Files", use_container_width=True, help="List config files"):
+                run_nsds_command("nsds config file list")
+        with col2:
+            if st.button("Update File", use_container_width=True, help="Update config file"):
+                run_nsds_command("nsds config file update")
+                
+        # Docker config
+        st.markdown("**Docker Config**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List Docker", use_container_width=True, help="List docker options"):
+                run_nsds_command("nsds config docker list")
+        with col2:
+            if st.button("Update Docker", use_container_width=True, help="Update docker options"):
+                run_nsds_command("nsds config docker update")
     
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Ping Test", use_container_width=True, help="Ping a remote host"):
-            run_nsds_command("nsds network ping google.com")
-    with col2:
-        if st.button("DNS Lookup", use_container_width=True, help="Perform DNS lookup"):
-            run_nsds_command("nsds network dns-lookup example.com")
+    # Export Management
+    with st.sidebar.expander("📁 Export Management", expanded=False):
+        # NFS exports
+        st.markdown("**NFS Exports**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List NFS", use_container_width=True, help="List NFS exports"):
+                run_nsds_command("nsds export nfs list")
+            if st.button("Add NFS", use_container_width=True, help="Add NFS export"):
+                run_nsds_command("nsds export nfs add")
+        with col2:
+            if st.button("Show NFS", use_container_width=True, help="Show NFS export details"):
+                run_nsds_command("nsds export nfs show")
+            if st.button("Remove NFS", use_container_width=True, help="Remove NFS export"):
+                run_nsds_command("nsds export nfs remove")
+        
+        # SMB exports
+        st.markdown("**SMB Exports**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List SMB", use_container_width=True, help="List SMB shares"):
+                run_nsds_command("nsds export smb list")
+            if st.button("Add SMB", use_container_width=True, help="Add SMB share"):
+                run_nsds_command("nsds export smb add")
+        with col2:
+            if st.button("Show SMB", use_container_width=True, help="Show SMB share details"):
+                run_nsds_command("nsds export smb show")
+            if st.button("Remove SMB", use_container_width=True, help="Remove SMB share"):
+                run_nsds_command("nsds export smb remove")
     
-    # Authentication & Configuration
-    st.sidebar.subheader("Auth & Config")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Auth Status", use_container_width=True, help="Check authentication status"):
-            run_nsds_command("nsds auth status")
-    with col2:
-        if st.button("View Config", use_container_width=True, help="View configuration settings"):
-            run_nsds_command("nsds config view")
+    # Node Management
+    with st.sidebar.expander("🖥️ Node Management", expanded=False):
+        st.markdown("**Node Commands**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("Node Status", use_container_width=True, help="Show node status"):
+                run_nsds_command("nsds node status")
+            if st.button("Add Node", use_container_width=True, help="Add node to cluster"):
+                run_nsds_command("nsds node add")
+            if st.button("Start Node", use_container_width=True, help="Start services on node"):
+                run_nsds_command("nsds node start")
+        with col2:
+            if st.button("Remove Node", use_container_width=True, help="Remove node from cluster"):
+                run_nsds_command("nsds node remove")
+            if st.button("Stop Node", use_container_width=True, help="Stop services on node"):
+                run_nsds_command("nsds node stop")
+            if st.button("Restart Node", use_container_width=True, help="Restart services on node"):
+                run_nsds_command("nsds node restart")
     
-    # Application commands
-    st.sidebar.subheader("Application Tools")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("App Status", use_container_width=True, help="Check application status"):
-            run_nsds_command("nsds app status")
-    with col2:
-        if st.button("App Services", use_container_width=True, help="List running services"):
-            run_nsds_command("nsds app services")
+    # Filesystem Management
+    with st.sidebar.expander("💾 Filesystem Management", expanded=False):
+        st.markdown("**Filesystem Commands**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List FS", use_container_width=True, help="List filesystems"):
+                run_nsds_command("nsds filesystem list")
+            if st.button("Add FS", use_container_width=True, help="Add new filesystem"):
+                run_nsds_command("nsds filesystem add")
+        with col2:
+            if st.button("Remove FS", use_container_width=True, help="Remove filesystem"):
+                run_nsds_command("nsds filesystem remove")
     
-    # File system utilities
-    st.sidebar.subheader("File System Utils")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("List Files", use_container_width=True, help="List files in current directory"):
-            run_nsds_command("ls -la")
-    with col2:
-        if st.button("Find Recent", use_container_width=True, help="Find recent files"):
-            run_nsds_command("find . -type f -mtime -1 | sort")
+    # Diag & Prereq
+    with st.sidebar.expander("🔍 Diagnostics & Prereq", expanded=False):
+        st.markdown("**Diagnostic Tools**")
+        if st.button("Collect Support Bundle", use_container_width=True, help="Collect diagnostic data"):
+            run_nsds_command("nsds diag collect")
+            
+        st.markdown("**Prerequisite Checks**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("Run Checks", use_container_width=True, help="Run prerequisite checks"):
+                run_nsds_command("nsds prereq check")
+            if st.button("List Checks", use_container_width=True, help="List available checks"):
+                run_nsds_command("nsds prereq list")
+        with col2:
+            if st.button("Show Check", use_container_width=True, help="Show check details"):
+                run_nsds_command("nsds prereq show")
+    
+    # System Utilities
+    with st.sidebar.expander("🛠️ System Utilities", expanded=False):
+        st.markdown("**File Operations**")
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("List Files", use_container_width=True, help="List files in current directory"):
+                run_nsds_command("ls -la")
+            if st.button("Disk Space", use_container_width=True, help="Show disk space usage"):
+                run_nsds_command("df -h")
+        with col2:
+            if st.button("Current Dir", use_container_width=True, help="Show current directory"):
+                run_nsds_command("pwd")
+            if st.button("Process List", use_container_width=True, help="List running processes"):
+                run_nsds_command("ps aux | head -10")
     
     # Display command history with better formatting 
     st.sidebar.markdown("---")
     if st.session_state.command_history:
-        with st.sidebar.expander("Command History", expanded=False):
+        with st.sidebar.expander("📜 Command History", expanded=False):
             for cmd in reversed(st.session_state.command_history[-10:]):  # Show last 10 commands
                 st.code(f"[{cmd['timestamp']}] {cmd['command']}")
     
     # Add NSDS Help button
     st.sidebar.markdown("---")
-    if st.sidebar.button("NSDS Help & Documentation", use_container_width=True):
+    if st.sidebar.button("📚 NSDS Help & Documentation", use_container_width=True):
         run_nsds_command("nsds --help")
 
 def run_nsds_command(command):

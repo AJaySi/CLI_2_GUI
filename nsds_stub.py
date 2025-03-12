@@ -11,7 +11,6 @@ PURPLE="\033[0;35m"
 CYAN="\033[0;36m"
 NC="\033[0m" # No Color
 
-# Function to print formatted output
 print_output() {
     echo -e "${GREEN}[NSDS]${NC} $1"
 }
@@ -24,45 +23,109 @@ print_error() {
     echo -e "${RED}ERROR:${NC} $1"
 }
 
-print_warning() {
-    echo -e "${YELLOW}WARNING:${NC} $1"
+print_command() {
+    echo -e "${CYAN}$1${NC} -> $2"
 }
 
-print_success() {
-    echo -e "${GREEN}SUCCESS:${NC} $1"
+print_tree_item() {
+    echo -e "├── ${YELLOW}$1${NC} -> $2"
 }
 
-# Display help
+print_tree_last() {
+    echo -e "└── ${YELLOW}$1${NC} -> $2"
+}
+
+# Check if help is requested
+if [[ "$1" == "-t" || "$1" == "--tree" ]]; then
+    print_header "NSDS CLI Subcommands:"
+    
+    # Auth section
+    print_command "auth" "Auth management for NFS/SMB services"
+    print_tree_item "clean" "Remove the auth configuration"
+    print_tree_item "commit" "Commit the edited auth configuration"
+    print_tree_item "edit" "Edit the auth configuration"
+    print_tree_item "init" "Initialize the authentication configuration"
+    print_tree_last "show" "Display the current auth configuration"
+    
+    # Cluster section
+    print_command "cluster" "Cluster wide operations"
+    print_tree_item "destroy" "Stop and remove nsds components from all the nodes in the cluster"
+    print_tree_item "init" "Create and initialize the NSDS cluster"
+    print_tree_item "rename" "Rename the cluster"
+    print_tree_item "restart" "Restart the NSDS services on all the nodes in the cluster"
+    print_tree_item "start" "Start the NSDS services on all the nodes in the cluster"
+    print_tree_item "status" "Display the cluster status"
+    print_tree_last "stop" "Stop the NSDS services on all the nodes in the cluster"
+    
+    # Config section
+    print_command "config" "Configuration management"
+    print_tree_item "cluster" "Cluster config operations"
+    print_tree_item "backup" "Backup the configurations of nsds components"
+    print_tree_last "list" "Display the current cluster configurations"
+    print_tree_item "docker" "Control NSDS docker (container) parameters"
+    print_tree_item "list" "Show current docker runtime options"
+    print_tree_last "update" "Update docker runtime options"
+    print_tree_item "file" "List/Edit various config files"
+    print_tree_item "list" "List the config files"
+    print_tree_last "update" "Update NSDS config file"
+    print_tree_item "nfs" "NFS global config operations"
+    print_tree_item "disable" "Disable the NFS service"
+    print_tree_item "enable" "Enable the NFS service"
+    print_tree_item "list" "List NFS global config"
+    print_tree_item "update" "Update NFS config"
+    print_tree_last "feature" "NFS related feature operations"
+    print_tree_item "node" "Config operations related to node"
+    print_tree_item "list" "List node-specific config options"
+    print_tree_last "update" "Update node-specific config options"
+    print_tree_item "smb" "SMB global config operations"
+    print_tree_item "disable" "Disable the SMB service"
+    print_tree_item "enable" "Enable the SMB service"
+    print_tree_item "list" "List SMB global config"
+    print_tree_item "update" "Update the SMB global config"
+    print_tree_last "feature" "SMB related feature operations"
+    print_tree_last "upgrade" "Check or apply the NSDS config upgrades"
+    
+    # More sections
+    print_command "diag" "Diagnostics and debugging"
+    print_command "export" "Export management"
+    print_command "filesystem" "File system (export root) management"
+    print_command "node" "Node specific operations"
+    print_command "prereq" "Run or test the prerequisites checks"
+    
+    # Deprecated commands
+    print_command "nfs_export" "(deprecated)"
+    print_command "smb_export" "(deprecated)"
+    print_command "restart" "(deprecated)"
+    print_command "start" "(deprecated)"
+    print_command "stop" "(deprecated)"
+    print_command "status" "(deprecated)"
+    
+    exit 0
+fi
+
+# Regular help command
 if [[ "$1" == "--help" ]]; then
     print_header "NSDS Command Line Interface - Help"
     echo "Usage: nsds [command_group] [command] [options]"
     echo ""
     echo "Main Command Groups:"
-    echo "  system        System management commands"
-    echo "  network       Network diagnostics and configuration"
-    echo "  auth          Authentication and authorization"
-    echo "  config        Configuration management"
-    echo "  app           Application control and monitoring"
+    echo "  auth           Authentication management for NFS/SMB services"
+    echo "  cluster        Cluster-wide operations"
+    echo "  config         Configuration management"
+    echo "  upgrade        Upgrade management"
+    echo "  diag           Diagnostics and debugging"
+    echo "  export         Export management"
+    echo "  filesystem     File system management"
+    echo "  node           Node-specific operations"
+    echo "  prereq         Prerequisite checks"
     echo ""
-    echo "Common Commands:"
-    echo "  nsds system info               Display system information"
-    echo "  nsds system disk-usage         Show disk usage statistics"
-    echo "  nsds system cpu-stats          Display CPU statistics"
-    echo "  nsds system memory-usage       Show memory usage"
+    echo "To see detailed subcommands: nsds -t"
     echo ""
-    echo "  nsds network check             Check network connectivity"
-    echo "  nsds network ip                Display IP configuration"
-    echo "  nsds network ping [host]       Ping a remote host"
-    echo "  nsds network dns-lookup [domain] Perform DNS lookup"
-    echo ""
-    echo "  nsds auth status               Check authentication status"
-    echo "  nsds auth login                Login to NSDS services"
-    echo ""
-    echo "  nsds config view               View current configuration"
-    echo "  nsds config update [key] [value] Update configuration"
-    echo ""
-    echo "  nsds app status                Display application status"
-    echo "  nsds app services              List all running services"
+    echo "Examples:"
+    echo "  nsds auth show              Display current auth configuration"
+    echo "  nsds cluster status         Display cluster status"
+    echo "  nsds config nfs list        List NFS global configuration"
+    echo "  nsds node status            Show current node status"
     echo ""
     echo "For more information, see the complete documentation."
     exit 0
@@ -70,150 +133,520 @@ fi
 
 # Handle main command groups
 case "$1" in
-    "system")
-        case "$2" in
-            "info")
-                print_header "System Information"
-                print_output "Hostname: $(hostname)"
-                print_output "Kernel: $(uname -r)"
-                print_output "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \")"
-                print_output "Uptime: $(uptime -p)"
-                print_output "CPU: $(grep "model name" /proc/cpuinfo | head -1 | cut -d: -f2 | sed "s/^[ \t]*//")"
-                print_output "Memory: $(free -h | awk "/^Mem:/ {print \$2}" | sed "s/Gi/ GB/")"
-                ;;
-            "disk-usage")
-                print_header "Disk Usage"
-                df -h | grep -v "tmpfs"
-                ;;
-            "cpu-stats")
-                print_header "CPU Statistics"
-                print_output "Processing load average: $(uptime | awk -F"load average:" "{print \$2}" | sed "s/^[ \t]*//")"
-                print_output "CPU cores: $(nproc)"
-                print_output "Top CPU processes:"
-                ps aux --sort=-%cpu | head -6
-                ;;
-            "memory-usage")
-                print_header "Memory Usage"
-                free -h
-                print_output "Top memory processes:"
-                ps aux --sort=-%mem | head -6
-                ;;
-            *)
-                print_error "Unknown system command: $2"
-                print_output "Available system commands: info, disk-usage, cpu-stats, memory-usage"
-                ;;
-        esac
-        ;;
-    "network")
-        case "$2" in
-            "check")
-                print_header "Network Connectivity Check"
-                if ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
-                    print_success "Internet connectivity: Available"
-                else
-                    print_error "Internet connectivity: Not available"
-                fi
-                print_output "Network interfaces:"
-                ip -o addr show | grep -v "lo " | awk "{print \$2, \$4}"
-                ;;
-            "ip")
-                print_header "IP Configuration"
-                print_output "Network interfaces:"
-                ip -o addr show | grep -v "lo " | awk "{print \$2, \$4}"
-                print_output "Public IP: <Simulated: 203.0.113.42>"
-                ;;
-            "ping")
-                host="${3:-google.com}"
-                print_header "Ping Test to $host"
-                ping -c 4 $host
-                ;;
-            "dns-lookup")
-                domain="${3:-example.com}"
-                print_header "DNS Lookup for $domain"
-                nslookup $domain
-                ;;
-            *)
-                print_error "Unknown network command: $2"
-                print_output "Available network commands: check, ip, ping, dns-lookup"
-                ;;
-        esac
-        ;;
     "auth")
         case "$2" in
-            "status")
-                print_header "Authentication Status"
-                print_success "Current user: demo_user"
-                print_output "Session valid until: $(date -d "+2 hours" "+%Y-%m-%d %H:%M:%S")"
-                print_output "Permission level: standard"
-                print_output "Last login: $(date -d "-1 day" "+%Y-%m-%d %H:%M:%S")"
+            "show")
+                print_header "Current Authentication Configuration"
+                print_output "Authentication Type: Kerberos + Active Directory"
+                print_output "Domain: example.local"
+                print_output "Security Mode: AES256"
+                print_output "Status: Connected"
+                print_output "Services Authenticated: NFS, SMB"
                 ;;
-            "login")
-                print_header "NSDS Authentication"
-                print_output "Simulating login process..."
+            "clean")
+                print_header "Removing Authentication Configuration"
+                print_output "Cleaning authentication configuration..."
                 sleep 1
-                print_success "Login successful as demo_user"
-                print_output "Session established until: $(date -d "+2 hours" "+%Y-%m-%d %H:%M:%S")"
+                print_output "Removing cached credentials..."
+                sleep 1
+                print_output "Disconnecting from domain..."
+                sleep 1
+                print_output "Authentication configuration successfully removed."
+                ;;
+            "commit")
+                print_header "Committing Authentication Changes"
+                print_output "Validating changes..."
+                sleep 1
+                print_output "Committing changes to authentication configuration..."
+                sleep 1
+                print_output "Changes successfully committed."
+                ;;
+            "edit")
+                print_header "Edit Authentication Configuration"
+                print_output "Opening editor for authentication configuration..."
+                print_output "Simulated editor interface for authentication settings"
+                print_output "Changes would be made and saved here in a real environment."
+                ;;
+            "init")
+                print_header "Initialize Authentication"
+                print_output "Starting authentication initialization..."
+                sleep 1
+                print_output "Configuring Kerberos settings..."
+                sleep 1
+                print_output "Setting up Active Directory integration..."
+                sleep 1
+                print_output "Authentication successfully initialized."
                 ;;
             *)
                 print_error "Unknown auth command: $2"
-                print_output "Available auth commands: status, login"
+                print_output "Available auth commands: show, clean, commit, edit, init"
+                ;;
+        esac
+        ;;
+    "cluster")
+        case "$2" in
+            "status")
+                print_header "NSDS Cluster Status"
+                echo -e "Cluster Name: NSDS-Main"
+                echo -e "Cluster ID: c7a8b9e5-d6f4-42e3-9a1b-3c8d7e5f6a2b"
+                echo -e "Total Nodes: 3"
+                echo -e "\nNode Status:"
+                echo -e "node1  | HEALTHY | 192.168.1.101 | Manager"
+                echo -e "node2  | HEALTHY | 192.168.1.102 | Worker"
+                echo -e "node3  | HEALTHY | 192.168.1.103 | Worker"
+                echo -e "\nServices Status:"
+                echo -e "NFS    | RUNNING | 3/3 nodes"
+                echo -e "SMB    | RUNNING | 3/3 nodes"
+                echo -e "Mgmt   | RUNNING | 1/1 nodes"
+                ;;
+            "init")
+                print_header "Initializing NSDS Cluster"
+                print_output "Preparing cluster initialization..."
+                sleep 1
+                print_output "Configuring cluster parameters..."
+                sleep 1
+                print_output "Creating cluster structure..."
+                sleep 1
+                print_output "Cluster successfully initialized."
+                ;;
+            "destroy")
+                print_header "Destroying NSDS Cluster"
+                print_output "WARNING: This will remove all NSDS components"
+                print_output "Stopping all NSDS services..."
+                sleep 1
+                print_output "Removing NSDS components from nodes..."
+                sleep 1
+                print_output "Cleaning up cluster configuration..."
+                sleep 1
+                print_output "Cluster successfully destroyed."
+                ;;
+            "rename")
+                print_header "Rename NSDS Cluster"
+                print_output "Current cluster name: NSDS-Main"
+                print_output "Renaming cluster..."
+                sleep 1
+                print_output "Updating configuration files..."
+                sleep 1
+                print_output "Cluster successfully renamed."
+                ;;
+            "restart")
+                print_header "Restarting NSDS Services Cluster-wide"
+                print_output "Stopping services on all nodes..."
+                sleep 1
+                print_output "Starting services on all nodes..."
+                sleep 1
+                print_output "Services restarted successfully on all cluster nodes."
+                ;;
+            "start")
+                print_header "Starting NSDS Services Cluster-wide"
+                print_output "Starting services on node1..."
+                sleep 1
+                print_output "Starting services on node2..."
+                sleep 1
+                print_output "Starting services on node3..."
+                sleep 1
+                print_output "Services started successfully on all cluster nodes."
+                ;;
+            "stop")
+                print_header "Stopping NSDS Services Cluster-wide"
+                print_output "Stopping services on node1..."
+                sleep 1
+                print_output "Stopping services on node2..."
+                sleep 1
+                print_output "Stopping services on node3..."
+                sleep 1
+                print_output "Services stopped successfully on all cluster nodes."
+                ;;
+            *)
+                print_error "Unknown cluster command: $2"
+                print_output "Available cluster commands: status, init, destroy, rename, restart, start, stop"
                 ;;
         esac
         ;;
     "config")
         case "$2" in
-            "view")
-                print_header "NSDS Configuration"
-                print_output "Environment: development"
-                print_output "Log level: info"
-                print_output "API endpoint: https://api.nsds.example.com"
-                print_output "Cache: enabled"
-                print_output "Update frequency: daily"
-                print_output "Analytics: disabled"
+            "cluster")
+                print_header "Cluster Configuration"
+                case "$3" in
+                    "backup")
+                        print_output "Backing up cluster configurations..."
+                        sleep 1
+                        print_output "Backup complete: /var/nsds/backups/cluster-config-$(date +%Y%m%d).tgz"
+                        ;;
+                    "list")
+                        print_output "Current Cluster Configurations:"
+                        print_output "Cluster Name: NSDS-Main"
+                        print_output "Cluster ID: c7a8b9e5-d6f4-42e3-9a1b-3c8d7e5f6a2b"
+                        print_output "Nodes: 3"
+                        print_output "Services: NFS, SMB, Management"
+                        print_output "Replication Factor: 2"
+                        print_output "Auto-failover: Enabled"
+                        ;;
+                    *)
+                        print_error "Unknown cluster config command: $3"
+                        print_output "Available cluster config commands: backup, list"
+                        ;;
+                esac
                 ;;
-            "update")
-                key="$3"
-                value="$4"
-                if [[ -z "$key" || -z "$value" ]]; then
-                    print_error "Missing key or value"
-                    print_output "Usage: nsds config update [key] [value]"
-                else
-                    print_header "Configuration Update"
-                    print_output "Updating $key to $value..."
-                    sleep 1
-                    print_success "Configuration updated successfully"
-                fi
+            "nfs")
+                print_header "NFS Configuration"
+                case "$3" in
+                    "list")
+                        print_output "NFS Global Configuration:"
+                        print_output "State: Enabled"
+                        print_output "Version: 4.2"
+                        print_output "Security: Kerberos"
+                        print_output "Performance Mode: High Throughput"
+                        print_output "Max Connections: 5000"
+                        ;;
+                    "enable")
+                        print_output "Enabling NFS service..."
+                        sleep 1
+                        print_output "NFS service enabled successfully."
+                        ;;
+                    "disable")
+                        print_output "Disabling NFS service..."
+                        sleep 1
+                        print_output "NFS service disabled successfully."
+                        ;;
+                    "update")
+                        print_output "Updating NFS configuration..."
+                        sleep 1
+                        print_output "NFS configuration updated successfully."
+                        ;;
+                    *)
+                        print_error "Unknown NFS config command: $3"
+                        print_output "Available NFS config commands: list, enable, disable, update"
+                        ;;
+                esac
+                ;;
+            "smb")
+                print_header "SMB Configuration"
+                case "$3" in
+                    "list")
+                        print_output "SMB Global Configuration:"
+                        print_output "State: Enabled"
+                        print_output "Version: 3.1.1"
+                        print_output "Security: AES-256"
+                        print_output "Authentication: Kerberos + NTLM"
+                        print_output "Max Connections: 2500"
+                        ;;
+                    "enable")
+                        print_output "Enabling SMB service..."
+                        sleep 1
+                        print_output "SMB service enabled successfully."
+                        ;;
+                    "disable")
+                        print_output "Disabling SMB service..."
+                        sleep 1
+                        print_output "SMB service disabled successfully."
+                        ;;
+                    "update")
+                        print_output "Updating SMB configuration..."
+                        sleep 1
+                        print_output "SMB configuration updated successfully."
+                        ;;
+                    *)
+                        print_error "Unknown SMB config command: $3"
+                        print_output "Available SMB config commands: list, enable, disable, update"
+                        ;;
+                esac
+                ;;
+            "file")
+                print_header "Configuration File Management"
+                case "$3" in
+                    "list")
+                        print_output "Available configuration files:"
+                        print_output "/etc/nsds/main.conf - Main configuration file"
+                        print_output "/etc/nsds/nfs.conf - NFS service configuration"
+                        print_output "/etc/nsds/smb.conf - SMB service configuration"
+                        print_output "/etc/nsds/auth.conf - Authentication configuration"
+                        print_output "/etc/nsds/cluster.conf - Cluster configuration"
+                        ;;
+                    "update")
+                        print_output "Updating configuration file..."
+                        sleep 1
+                        print_output "Configuration file updated successfully."
+                        ;;
+                    *)
+                        print_error "Unknown file config command: $3"
+                        print_output "Available file config commands: list, update"
+                        ;;
+                esac
+                ;;
+            "docker")
+                print_header "Docker Configuration"
+                case "$3" in
+                    "list")
+                        print_output "Docker Runtime Options:"
+                        print_output "Image: nsds/server:latest"
+                        print_output "Resource Limits: 8 CPU, 16GB RAM"
+                        print_output "Network Mode: host"
+                        print_output "Restart Policy: always"
+                        print_output "Log Driver: json-file"
+                        ;;
+                    "update")
+                        print_output "Updating docker runtime options..."
+                        sleep 1
+                        print_output "Docker runtime options updated successfully."
+                        ;;
+                    *)
+                        print_error "Unknown docker config command: $3"
+                        print_output "Available docker config commands: list, update"
+                        ;;
+                esac
                 ;;
             *)
                 print_error "Unknown config command: $2"
-                print_output "Available config commands: view, update"
+                print_output "Available config commands: cluster, nfs, smb, file, docker"
                 ;;
         esac
         ;;
-    "app")
+    "node")
         case "$2" in
             "status")
-                print_header "Application Status"
-                print_success "NSDS Core: Running (PID: 12345)"
-                print_output "Version: 2.1.4"
-                print_output "Uptime: 3 days, 7 hours"
-                print_output "Memory usage: 124 MB"
-                print_output "CPU usage: 2.3%"
-                print_output "Active connections: 17"
-                print_output "Status: Healthy"
+                print_header "Node Status Information"
+                print_output "Current Node: node1.example.com"
+                print_output "Status: HEALTHY"
+                print_output "IP Address: 192.168.1.101"
+                print_output "Role: Manager"
+                print_output "Uptime: 14 days, 7 hours"
+                print_output ""
+                print_output "Services Status:"
+                print_output "- NFS: RUNNING"
+                print_output "- SMB: RUNNING"
+                print_output "- Management: RUNNING"
                 ;;
-            "services")
-                print_header "Running Services"
-                echo -e "SERVICE\t\tSTATUS\t\tPID\t\tMEMORY\t\tCPU%"
-                echo -e "nsds-core\tRunning\t\t12345\t\t124 MB\t\t2.3%"
-                echo -e "nsds-api\tRunning\t\t12346\t\t85 MB\t\t1.7%"
-                echo -e "nsds-monitor\tRunning\t\t12347\t\t42 MB\t\t0.5%"
-                echo -e "nsds-scheduler\tRunning\t\t12348\t\t36 MB\t\t0.3%"
-                echo -e "nsds-cache\tRunning\t\t12349\t\t156 MB\t\t1.1%"
+            "add")
+                print_header "Add Node to Cluster"
+                print_output "Starting node addition process..."
+                sleep 1
+                print_output "Validating node requirements..."
+                sleep 1
+                print_output "Adding node to cluster configuration..."
+                sleep 1
+                print_output "Node successfully added to cluster."
+                ;;
+            "remove")
+                print_header "Remove Node from Cluster"
+                print_output "Starting node removal process..."
+                sleep 1
+                print_output "Draining workloads from node..."
+                sleep 1
+                print_output "Removing node from cluster configuration..."
+                sleep 1
+                print_output "Node successfully removed from cluster."
+                ;;
+            "restart")
+                print_header "Restart NSDS Services on Node"
+                print_output "Stopping services on current node..."
+                sleep 1
+                print_output "Starting services on current node..."
+                sleep 1
+                print_output "Services restarted successfully on current node."
+                ;;
+            "start")
+                print_header "Start NSDS Services on Node"
+                print_output "Starting services on current node..."
+                sleep 1
+                print_output "Services started successfully on current node."
+                ;;
+            "stop")
+                print_header "Stop NSDS Services on Node"
+                print_output "Stopping services on current node..."
+                sleep 1
+                print_output "Services stopped successfully on current node."
+                ;;
+            "rename")
+                print_header "Rename Node"
+                print_output "Current node name: node1.example.com"
+                print_output "Renaming node..."
+                sleep 1
+                print_output "Updating configuration files..."
+                sleep 1
+                print_output "Node successfully renamed."
                 ;;
             *)
-                print_error "Unknown app command: $2"
-                print_output "Available app commands: status, services"
+                print_error "Unknown node command: $2"
+                print_output "Available node commands: status, add, remove, restart, start, stop, rename"
+                ;;
+        esac
+        ;;
+    "export")
+        case "$2" in
+            "nfs")
+                print_header "NFS Export Management"
+                case "$3" in
+                    "list")
+                        print_output "Available NFS Exports:"
+                        print_output "/export/data - General data export"
+                        print_output "/export/home - User home directories"
+                        print_output "/export/projects - Project workspace"
+                        ;;
+                    "add")
+                        print_output "Adding new NFS export..."
+                        sleep 1
+                        print_output "NFS export added successfully."
+                        ;;
+                    "remove")
+                        print_output "Removing NFS export..."
+                        sleep 1
+                        print_output "NFS export removed successfully."
+                        ;;
+                    "update")
+                        print_output "Updating NFS export..."
+                        sleep 1
+                        print_output "NFS export updated successfully."
+                        ;;
+                    "show")
+                        print_output "Details for NFS Export /export/data:"
+                        print_output "Path: /export/data"
+                        print_output "Clients: *"
+                        print_output "Options: rw,sync,no_root_squash"
+                        print_output "Active: Yes"
+                        ;;
+                    "load")
+                        print_output "Loading NFS exports from configuration..."
+                        sleep 1
+                        print_output "NFS exports loaded successfully."
+                        ;;
+                    *)
+                        print_error "Unknown NFS export command: $3"
+                        print_output "Available NFS export commands: list, add, remove, update, show, load"
+                        ;;
+                esac
+                ;;
+            "smb")
+                print_header "SMB Export Management"
+                case "$3" in
+                    "list")
+                        print_output "Available SMB Shares:"
+                        print_output "data - General data share"
+                        print_output "home - User home directories"
+                        print_output "projects - Project workspace"
+                        ;;
+                    "add")
+                        print_output "Adding new SMB share..."
+                        sleep 1
+                        print_output "SMB share added successfully."
+                        ;;
+                    "remove")
+                        print_output "Removing SMB share..."
+                        sleep 1
+                        print_output "SMB share removed successfully."
+                        ;;
+                    "update")
+                        print_output "Updating SMB share..."
+                        sleep 1
+                        print_output "SMB share updated successfully."
+                        ;;
+                    "show")
+                        print_output "Details for SMB Share data:"
+                        print_output "Name: data"
+                        print_output "Path: /export/data"
+                        print_output "Browseable: Yes"
+                        print_output "Writable: Yes"
+                        print_output "Guest OK: No"
+                        ;;
+                    "load")
+                        print_output "Loading SMB shares from configuration..."
+                        sleep 1
+                        print_output "SMB shares loaded successfully."
+                        ;;
+                    *)
+                        print_error "Unknown SMB export command: $3"
+                        print_output "Available SMB export commands: list, add, remove, update, show, load"
+                        ;;
+                esac
+                ;;
+            *)
+                print_error "Unknown export command: $2"
+                print_output "Available export commands: nfs, smb"
+                ;;
+        esac
+        ;;
+    "filesystem")
+        print_header "Filesystem Management"
+        case "$2" in
+            "add")
+                print_output "Adding new filesystem..."
+                sleep 1
+                print_output "Configuring filesystem parameters..."
+                sleep 1
+                print_output "Filesystem successfully added."
+                ;;
+            "list")
+                print_output "Available Filesystems:"
+                print_output "data_vol - /export/data - 2TB - Online"
+                print_output "home_vol - /export/home - 500GB - Online"
+                print_output "project_vol - /export/projects - 4TB - Online"
+                ;;
+            "remove")
+                print_output "Removing filesystem..."
+                sleep 1
+                print_output "WARNING: This will delete all data in the filesystem"
+                sleep 1
+                print_output "Filesystem successfully removed."
+                ;;
+            *)
+                print_error "Unknown filesystem command: $2"
+                print_output "Available filesystem commands: add, list, remove"
+                ;;
+        esac
+        ;;
+    "diag")
+        print_header "Diagnostics and Debugging"
+        case "$2" in
+            "collect")
+                print_output "Collecting support bundle..."
+                sleep 1
+                print_output "Gathering system information..."
+                sleep 1
+                print_output "Gathering logs..."
+                sleep 1
+                print_output "Creating archive..."
+                sleep 1
+                print_output "Support bundle created: /tmp/nsds-support-bundle-$(date +%Y%m%d).tar.gz"
+                ;;
+            *)
+                print_error "Unknown diagnostics command: $2"
+                print_output "Available diagnostics commands: collect"
+                ;;
+        esac
+        ;;
+    "prereq")
+        print_header "Prerequisite Checks"
+        case "$2" in
+            "check")
+                print_output "Running prerequisite checks..."
+                sleep 1
+                print_output "Checking hardware requirements... PASS"
+                print_output "Checking network configuration... PASS"
+                print_output "Checking required packages... PASS"
+                print_output "Checking kernel version... PASS"
+                print_output "Checking filesystem support... PASS"
+                print_output "Checking system resources... PASS"
+                print_output "All prerequisite checks passed successfully."
+                ;;
+            "list")
+                print_output "Available Prerequisite Checks:"
+                print_output "- hardware: CPU, memory, and storage validation"
+                print_output "- network: IP configuration, firewall, and DNS"
+                print_output "- packages: Required software packages"
+                print_output "- kernel: Kernel version and parameters"
+                print_output "- filesystem: Required filesystem support"
+                print_output "- resources: Available system resources"
+                ;;
+            "show")
+                print_output "Details for Hardware Prerequisite Check:"
+                print_output "CPU: At least 4 cores required"
+                print_output "Memory: Minimum 8GB required"
+                print_output "Storage: At least 100GB free space required"
+                print_output "Current status: PASS"
+                ;;
+            *)
+                print_error "Unknown prerequisite command: $2"
+                print_output "Available prerequisite commands: check, list, show"
                 ;;
         esac
         ;;
@@ -221,9 +654,10 @@ case "$1" in
         if [[ -z "$1" ]]; then
             print_header "NSDS Command Line Interface"
             print_output "Use nsds --help to see available commands"
+            print_output "Use nsds -t to see the command tree"
         else
             print_error "Unknown command group: $1"
-            print_output "Available command groups: system, network, auth, config, app"
+            print_output "Available command groups: auth, cluster, config, export, filesystem, node, prereq, diag"
             print_output "Use nsds --help for more information"
         fi
         ;;

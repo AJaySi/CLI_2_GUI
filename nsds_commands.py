@@ -38,7 +38,7 @@ class CommandStructure:
                     "docker": {
                         "title": "Control NSDS docker (container) parameters",
                         "subcommands": {
-                            "list": "List docker runtime options",
+                            "list": "Show current docker runtime options",
                             "update": "Update docker runtime options"
                         }
                     },
@@ -47,6 +47,53 @@ class CommandStructure:
                         "subcommands": {
                             "list": "List the config files",
                             "update": "Update NSDS config file"
+                        }
+                    },
+                    "nfs": {
+                        "title": "NFS global config operations",
+                        "subcommands": {
+                            "disable": "Disable the NFS service",
+                            "enable": "Enable the NFS service",
+                            "list": "List NFS global config",
+                            "update": "Update NFS config",
+                            "feature": {
+                                "title": "NFS related feature operations",
+                                "subcommands": {
+                                    "list": "Get the list of available features and feature values",
+                                    "update": "Set the feature value"
+                                }
+                            }
+                        }
+                    },
+                    "node": {
+                        "title": "Config operations related to node",
+                        "subcommands": {
+                            "list": "List node-specific config options",
+                            "update": "Update node-specific config options"
+                        }
+                    },
+                    "smb": {
+                        "title": "SMB global config operations",
+                        "subcommands": {
+                            "disable": "Disable the SMB service",
+                            "enable": "Enable the SMB service",
+                            "list": "List SMB global config",
+                            "update": "Update the SMB global config",
+                            "feature": {
+                                "title": "SMB related feature operations",
+                                "subcommands": {
+                                    "list": "Get the list of available features and feature values",
+                                    "update": "Set the feature value"
+                                }
+                            }
+                        }
+                    },
+                    "upgrade": {
+                        "title": "Check or apply the NSDS config upgrades",
+                        "subcommands": {
+                            "apply": "Apply NSDS config upgrades on all nodes",
+                            "check": "Check if NSDS config can be upgraded on all the nodes",
+                            "status": "Check the upgrade status of all the nodes"
                         }
                     }
                 }
@@ -109,7 +156,47 @@ class CommandStructure:
                     "list": "List file system(s)",
                     "remove": "Remove a file system"
                 }
-            }
+            },
+            "node": {
+                "title": "Node specific operations",
+                "subcommands": {
+                    "add": "Add a new node to the cluster",
+                    "remove": "Remove a node from the cluster",
+                    "rename": "Rename the specific node",
+                    "restart": "Restart the NSDS services on the current node",
+                    "start": "Start the NSDS services on the current node",
+                    "status": "Show the current node status",
+                    "stop": "Stop the NSDS services on the current node"
+                }
+            },
+            "prereq": {
+                "title": "Run or test the prerequisites checks",
+                "subcommands": {
+                    "check": "Runs the prerequisites checks on given nodes and displays results",
+                    "list": "List all the checks",
+                    "show": "Display the check information"
+                }
+            },
+            "nfs_export": {
+                "title": "(deprecated)",
+                "subcommands": {
+                    "add": "(deprecated)",
+                    "list": "(deprecated)",
+                    "remove": "(deprecated)"
+                }
+            },
+            "smb_export": {
+                "title": "(deprecated)",
+                "subcommands": {
+                    "add": "(deprecated)",
+                    "list": "(deprecated)",
+                    "remove": "(deprecated)"
+                }
+            },
+            "restart": {"title": "(deprecated)"},
+            "start": {"title": "(deprecated)"},
+            "stop": {"title": "(deprecated)"},
+            "status": {"title": "(deprecated)"}
         }
 
     def get_main_categories(self) -> List[str]:
