@@ -615,6 +615,13 @@ def main():
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         
+        /* Special styling for Auth Management expander */
+        section[data-testid="stSidebar"] .stExpander:has(div:first-child p:contains("🔑 Auth Management")) > div:first-child {
+            background: linear-gradient(to right, #2980b9, #1c1c1c) !important;
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
         /* All text elements inside left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child p,
         section[data-testid="stSidebar"] .stExpander > div:first-child span {
