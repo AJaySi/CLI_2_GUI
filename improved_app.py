@@ -620,8 +620,8 @@ def main():
         /* All text elements inside left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child p,
         section[data-testid="stSidebar"] .stExpander > div:first-child span {
-            color: #2c3e50 !important;
-            font-weight: 500;
+            color: #1a2530 !important;
+            font-weight: 600;
         }
         
         /* Icon in left sidebar expander header */
