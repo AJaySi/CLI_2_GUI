@@ -1029,158 +1029,122 @@ def main():
             st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
     
         # Command input and execute button
-        col1, col2 = st.columns([5, 1])
-    
-        # Check for command from sidebar
+        # Command section
+        # Check for command from sidebar or voice input
         next_command = st.session_state.get('next_command', '')
-        if next_command:
-            # Clear it after use
+        if next_command and 'command_input' in st.session_state:
+            # Clear it after use to avoid state conflicts
+            del st.session_state.command_input
             st.session_state.next_command = ''
         
-        with col1:
-            # Use a container to put command input and voice button side by side
-            input_container = st.container()
-            input_col1, input_col2 = input_container.columns([9, 1])
+        # Command input area with voice input and execute button
+        cmd_col1, cmd_col2 = st.columns([5, 1])
         
-            with input_col1:
-                # Check for a delayed command from sidebar or voice
-                if next_command:
-                    # Use direct value setting to avoid warning
-                    if 'command_input' in st.session_state:
-                        del st.session_state.command_input
-            
-                # Text input for command - Use empty key for immediate value
-                command = st.text_input(
-                    "Enter command",
-                    value=next_command if next_command else "", 
-                    placeholder="Type your command here (e.g., ls, pwd, python)",
-                    label_visibility="collapsed",
-                    key="command_input"
-                )
+        # Command input field
+        with cmd_col1:
+            command = st.text_input(
+                "Enter command",
+                value=next_command if next_command else "", 
+                placeholder="Type your command here (e.g., ls, pwd, python)",
+                label_visibility="collapsed",
+                key="command_input"
+            )
+        
+        # Voice input and execute button
+        with cmd_col2:
+            # Voice input integration
+            voice_text = handle_voice_input()
+            if voice_text:
+                st.session_state.next_command = voice_text
+                st.rerun()
                 
-                # Get suggestions based on current input
-                # With this approach, suggestions update on every keystroke as 
-                # Streamlit reruns the app on each interaction
-                suggestions = st.session_state.suggestion_engine.get_suggestions(command)
-                if suggestions:
-                    # Suggestion container with custom styling
-                    with st.container():
-                        st.markdown("""
-                        <style>
-                            .suggestion-container {
-                                background-color: #383c44;
-                                border-radius: 4px;
-                                margin-top: 4px;
-                                padding: 8px;
-                            }
-                            .suggestion-command {
-                                color: #98c379; /* Atom green */
-                                font-family: monospace;
-                                font-weight: 500;
-                            }
-                            .suggestion-description {
-                                color: #abb2bf; /* Atom foreground */
-                                font-size: 0.85em;
-                                margin-left: 10px;
-                            }
-                            .suggestion-category {
-                                color: #61afef;
-                                font-size: 0.85em;
-                                margin-bottom: 4px;
-                                font-weight: 500;
-                            }
-                            .suggestion-button {
-                                background-color: #2c313a;
-                                border: 1px solid #4b5263;
-                                border-radius: 4px;
-                                margin-bottom: 4px;
-                                padding: 4px 8px;
-                                cursor: pointer;
-                                transition: background-color 0.2s;
-                                display: flex;
-                                align-items: center;
-                            }
-                            .suggestion-button:hover {
-                                background-color: #3e4451;
-                            }
-                            .suggestion-button-icon {
-                                margin-right: 6px;
-                                color: #61afef;
-                            }
-                            /* Accessibility enhancements for suggestions */
-                            .high-contrast .suggestion-container {
-                                background-color: #000000;
-                                border: 2px solid #ffffff;
-                            }
-                            .high-contrast .suggestion-command {
-                                color: #ffffff;
-                                font-weight: bold;
-                            }
-                            .high-contrast .suggestion-description {
-                                color: #ffffff;
-                            }
-                        </style>
-                        <div class="suggestion-container" role="region" aria-label="Command Suggestions">
-                            <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">
-                                <span aria-hidden="true">💡</span> Contextual Suggestions:
-                            </p>
-                        """, unsafe_allow_html=True)
+            # Execute button
+            execute = st.button("Execute", type="primary", use_container_width=True)
+            
+        # Command suggestions section - only show if there's input to suggest from
+        if command:
+            suggestions = st.session_state.suggestion_engine.get_suggestions(command)
+            if suggestions:
+                st.markdown("""
+                <style>
+                    .suggestion-container {
+                        background-color: #383c44;
+                        border-radius: 4px;
+                        margin-top: 4px;
+                        padding: 8px;
+                    }
+                    .suggestion-command {
+                        color: #98c379; /* Atom green */
+                        font-family: monospace;
+                        font-weight: 500;
+                    }
+                    .suggestion-description {
+                        color: #abb2bf; /* Atom foreground */
+                        font-size: 0.85em;
+                        margin-left: 10px;
+                    }
+                    .suggestion-category {
+                        color: #61afef;
+                        font-size: 0.85em;
+                        margin-bottom: 4px;
+                        font-weight: 500;
+                    }
+                    .suggestion-button:hover {
+                        background-color: #3e4451;
+                    }
+                    /* Accessibility enhancements */
+                    .high-contrast .suggestion-container {
+                        background-color: #000000;
+                        border: 2px solid #ffffff;
+                    }
+                    .high-contrast .suggestion-command {
+                        color: #ffffff;
+                        font-weight: bold;
+                    }
+                </style>
+                <div class="suggestion-container">
+                    <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">
+                        <span aria-hidden="true">💡</span> Suggestions:
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Group suggestions by category
+                grouped_suggestions = {}
+                for suggestion in suggestions:
+                    desc_type = suggestion['description']
                     
-                        # Group suggestions by their description type for better organization
-                        grouped_suggestions = {}
-                        for suggestion in suggestions:
-                            desc_type = suggestion['description']
-                            
-                            # Extract category from description
-                            if "Recent command" in desc_type:
-                                category = "Recent Commands"
-                            elif "Frequently used" in desc_type:
-                                category = "Frequently Used"
-                            elif "Suggested next" in desc_type:
-                                category = "Suggested Next Actions"
-                            elif "current context" in desc_type:
-                                category = "Context-Aware Suggestions"
-                            elif "From history" in desc_type:
-                                category = "History Matches"
-                            else:
-                                category = "Command Suggestions"
-                                
-                            if category not in grouped_suggestions:
-                                grouped_suggestions[category] = []
-                            grouped_suggestions[category].append(suggestion)
+                    # Extract category from description
+                    if "Recent command" in desc_type:
+                        category = "Recent Commands"
+                    elif "Frequently used" in desc_type:
+                        category = "Frequently Used" 
+                    elif "Suggested next" in desc_type:
+                        category = "Suggested Next"
+                    elif "current context" in desc_type:
+                        category = "Context-Aware"
+                    elif "From history" in desc_type:
+                        category = "History Matches"
+                    else:
+                        category = "Command Suggestions"
                         
-                        # Display suggestions by group with more contextual information
-                        for category, category_suggestions in grouped_suggestions.items():
-                            st.markdown(f"""
-                            <div class="suggestion-category" role="heading" aria-level="3">
-                                {category}:
-                            </div>
-                            """, unsafe_allow_html=True)
-                            
-                            for suggestion in category_suggestions:
-                                # Determine appropriate icon for suggestion type
-                                icon = "⏱️" if "Recent" in category else "🔄" if "Frequently" in category else "➡️" if "Next" in category else "📌" if "Context" in category else "🔍"
-                                
-                                # Create a clickable suggestion with better visual hierarchy
-                                if st.button(
-                                    f"{suggestion['command']}",
-                                    key=f"suggestion_{suggestion['command']}",
-                                    help=suggestion['description']
-                                ):
-                                    st.session_state.next_command = suggestion['command']
-                                    st.rerun()
-        
-            # Voice input in the same row as command input
-            with input_col2:
-                # Check for voice input and pass it to command input
-                voice_text = handle_voice_input()
-                if voice_text:
-                    # Update the command with voice input and rerun to update UI
-                    st.session_state.next_command = voice_text
-                    st.rerun()
-    
-    with col2:
-        execute = st.button("Execute", type="primary", use_container_width=True)
+                    if category not in grouped_suggestions:
+                        grouped_suggestions[category] = []
+                    grouped_suggestions[category].append(suggestion)
+                
+                # Display suggestions by category
+                for category, category_suggestions in grouped_suggestions.items():
+                    st.markdown(f"**{category}:**")
+                    
+                    # Create buttons for each suggestion
+                    for suggestion in category_suggestions:
+                        if st.button(
+                            f"{suggestion['command']}",
+                            key=f"suggestion_{suggestion['command']}",
+                            help=suggestion['description']
+                        ):
+                            st.session_state.next_command = suggestion['command']
+                            st.rerun()
     
     # Show stop button if a command is running
     if st.session_state.is_command_running and st.session_state.command_process:
