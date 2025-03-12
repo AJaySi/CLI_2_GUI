@@ -5,6 +5,7 @@ from datetime import datetime
 import threading
 from queue import Queue, Empty
 from voice_input import handle_voice_input
+from command_suggestions import CommandSuggestionEngine
 
 # Initialize session state variables
 def initialize_session_state():
@@ -18,6 +19,10 @@ def initialize_session_state():
         st.session_state.command_process = None
     if 'output_queue' not in st.session_state:
         st.session_state.output_queue = Queue()
+    if 'suggestion_engine' not in st.session_state:
+        st.session_state.suggestion_engine = CommandSuggestionEngine()
+    if 'command_input' not in st.session_state:
+        st.session_state.command_input = ""
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -563,12 +568,55 @@ def main():
         input_col1, input_col2 = input_container.columns([9, 1])
         
         with input_col1:
+            # Save the current input to session state to track it for suggestions
+            current_input = st.session_state.get('command_input', next_command)
+            
+            # Text input for command
             command = st.text_input(
                 "Enter command",
                 value=next_command,
                 placeholder="Type your command here (e.g., ls, pwd, python)",
-                label_visibility="collapsed"
+                label_visibility="collapsed",
+                key="command_input"
             )
+            
+            # Show suggestions based on input - only if command input changes or is not empty
+            if command != current_input or command:
+                suggestions = st.session_state.suggestion_engine.get_suggestions(command)
+                if suggestions:
+                    # Suggestion container with custom styling
+                    with st.container():
+                        st.markdown("""
+                        <style>
+                            .suggestion-container {
+                                background-color: #383c44;
+                                border-radius: 4px;
+                                margin-top: 4px;
+                                padding: 8px;
+                            }
+                            .suggestion-command {
+                                color: #98c379; /* Atom green */
+                                font-family: monospace;
+                                font-weight: 500;
+                            }
+                            .suggestion-description {
+                                color: #abb2bf; /* Atom foreground */
+                                font-size: 0.85em;
+                                margin-left: 10px;
+                            }
+                        </style>
+                        <div class="suggestion-container">
+                            <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">Suggestions:</p>
+                        """, unsafe_allow_html=True)
+                        
+                        for suggestion in suggestions:
+                            if st.button(
+                                f"{suggestion['command']}",
+                                key=f"suggestion_{suggestion['command']}",
+                                help=suggestion['description']
+                            ):
+                                st.session_state.next_command = suggestion['command']
+                                st.rerun()
         
         # Voice input in the same row as command input
         with input_col2:
@@ -611,6 +659,9 @@ def main():
                 'timestamp': format_timestamp()
             }
             st.session_state.command_history.append(cmd_entry)
+            
+            # Add to suggestion engine history
+            st.session_state.suggestion_engine.add_to_history(command)
             
             # Set running flag
             st.session_state.is_command_running = True
