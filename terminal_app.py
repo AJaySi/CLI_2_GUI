@@ -187,7 +187,7 @@ def nsds_command_center():
                                     ):
                                         with st.spinner(f"Preparing command: {cmd}..."):
                                             full_command = f"nsds {selected_category} {subcategory} {cmd}"
-                                            st.session_state.command_input = full_command
+                                            st.session_state.command_input_default = full_command
                                             st.rerun()
             else:
                 # Handle direct subcommands
@@ -207,7 +207,7 @@ def nsds_command_center():
                             ):
                                 with st.spinner(f"Preparing command: {cmd}..."):
                                     full_command = f"nsds {selected_category} {cmd}"
-                                    st.session_state.command_input = full_command
+                                    st.session_state.command_input_default = full_command
                                     st.rerun()
 
 def terminal_page():
