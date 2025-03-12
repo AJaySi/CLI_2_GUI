@@ -605,25 +605,26 @@ def main():
         
         /* Left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child {
-            background: linear-gradient(to right, #7ab8ff, #e2a8ff);
+            background: linear-gradient(to right, #3a7bd5, #9f5afd);
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             font-weight: 500;
-            color: #1a365d !important;
+            color: white !important;
             display: flex;
             align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         
         /* All text elements inside left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child p,
         section[data-testid="stSidebar"] .stExpander > div:first-child span {
-            color: #1a365d !important;
+            color: white !important;
             font-weight: 600;
         }
         
         /* Icon in left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child span[aria-hidden="true"] {
-            color: #2c5282 !important;
+            color: rgba(255, 255, 255, 0.85) !important;
             margin-right: 0.5rem;
         }
         
@@ -662,8 +663,8 @@ def main():
         
         /* Show all commands button - special styling */
         section[data-testid="stSidebar"] .stButton button[kind="primary"] {
-            background: linear-gradient(to right, #7ab8ff, #e2a8ff) !important;
-            color: #1a365d !important;
+            background: linear-gradient(to right, #3a7bd5, #9f5afd) !important;
+            color: white !important;
             border: none !important;
             width: 100% !important;
             text-align: center !important;
@@ -680,7 +681,7 @@ def main():
         }
         
         section[data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
-            background: linear-gradient(to right, #4393ff, #cf83ff) !important;
+            background: linear-gradient(to right, #2a61b0, #8642e5) !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 3px 8px rgba(0,0,0,0.2) !important;
         }
