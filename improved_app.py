@@ -587,13 +587,13 @@ def main():
             border-bottom: 1px solid #cfd8dc;
         }
         
-        /* Left sidebar sections */
+        /* Left sidebar sections - updated to match screenshot */
         section[data-testid="stSidebar"] .stExpander {
-            background-color: #f1f3f6;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 0.8rem;
-            border: 1px solid rgba(13, 37, 63, 0.3);
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(13, 37, 63, 0.15);
             overflow: hidden;
             transition: all 0.3s ease;
         }
@@ -603,16 +603,16 @@ def main():
             transform: translateY(-1px);
         }
         
-        /* Left sidebar expander header - updated with blue-to-black gradient for all expanders */
+        /* Left sidebar expander header - refined light blue gradient from screenshot */
         section[data-testid="stSidebar"] .stExpander > div:first-child {
-            background: linear-gradient(135deg, #1e5799, #000000) !important;
+            background: linear-gradient(to right, #e6f3fd, #d5e9fb) !important;
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            font-weight: 600;
-            color: white !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 500;
+            color: #2c3e50 !important;
             display: flex;
             align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         
         /* Special styling for Auth Management expander removed as we now use inline approach */
@@ -620,13 +620,13 @@ def main():
         /* All text elements inside left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child p,
         section[data-testid="stSidebar"] .stExpander > div:first-child span {
-            color: white !important;
-            font-weight: 600;
+            color: #2c3e50 !important;
+            font-weight: 500;
         }
         
         /* Icon in left sidebar expander header */
         section[data-testid="stSidebar"] .stExpander > div:first-child span[aria-hidden="true"] {
-            color: rgba(255, 255, 255, 0.85) !important;
+            color: #3a7bd5 !important;
             margin-right: 0.5rem;
         }
         
