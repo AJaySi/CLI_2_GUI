@@ -6,6 +6,7 @@ import threading
 from queue import Queue, Empty
 from voice_input import handle_voice_input
 from command_suggestions import CommandSuggestionEngine
+from styles import apply_styles, get_theme_names
 
 # Initialize session state variables
 def initialize_session_state():
@@ -25,6 +26,8 @@ def initialize_session_state():
         st.session_state.next_command = ""
     if 'accessibility_mode' not in st.session_state:
         st.session_state.accessibility_mode = False
+    if 'selected_theme' not in st.session_state:
+        st.session_state.selected_theme = "Default"
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -138,6 +141,27 @@ def nsds_basic_commands():
         """, unsafe_allow_html=True)
         
         st.rerun()  # Rerun the app to apply accessibility changes
+        
+    # Theme selector
+    if not st.session_state.accessibility_mode:  # Only show themes when not in accessibility mode
+        st.sidebar.markdown("### 🎨 Background Theme")
+        
+        # Get available themes
+        theme_names = get_theme_names()
+        
+        # Theme selector using radio buttons for better UX
+        selected_theme = st.sidebar.radio(
+            "Select Theme",
+            theme_names,
+            index=theme_names.index(st.session_state.selected_theme),
+            help="Change the background theme of the terminal",
+            label_visibility="collapsed"
+        )
+        
+        # Update theme if changed
+        if selected_theme != st.session_state.selected_theme:
+            st.session_state.selected_theme = selected_theme
+            st.rerun()  # Rerun to apply theme
     
     # Command Tree button - Shows all commands
     if st.sidebar.button("📋 Show All Commands", use_container_width=True, help="Display complete command tree"):
