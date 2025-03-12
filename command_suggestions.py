@@ -128,15 +128,46 @@ class CommandSuggestionEngine:
                             "command": f"nsds export {subcategory} {action}",
                             "description": f"{action.capitalize()} {subcategory.upper()} export"
                         })
-        
-        # Check for system command completions
-        else:
-            for cmd in self.base_commands["system"]["commands"]:
-                if cmd.startswith(current_input):
+        # Check for NSDS subcommands without nsds prefix
+        elif current_input in self.base_commands["nsds"]["subcommands"]:
+            # Direct match for a main NSDS category, suggest the full NSDS command
+            category = current_input
+            suggestions.append({
+                "command": f"nsds {category}",
+                "description": f"NSDS {category} commands"
+            })
+            # Also suggest specific subcommands for this category
+            for subcmd in self.base_commands["nsds"]["subcommands"][category]:
+                suggestions.append({
+                    "command": f"nsds {category} {subcmd}",
+                    "description": f"NSDS {category} {subcmd} command"
+                })
+        elif any(category.startswith(current_input) for category in self.base_commands["nsds"]["subcommands"]):
+            # Partial match for a main NSDS category
+            for category in self.base_commands["nsds"]["subcommands"]:
+                if category.startswith(current_input):
                     suggestions.append({
-                        "command": cmd,
-                        "description": f"System command: {cmd}"
+                        "command": f"nsds {category}",
+                        "description": f"NSDS {category} commands"
                     })
+        else:
+            # Check if the input might be a subcommand (like "show" or "list")
+            for category, subcommands in self.base_commands["nsds"]["subcommands"].items():
+                if any(subcmd == current_input or subcmd.startswith(current_input) for subcmd in subcommands):
+                    matching_subcommands = [subcmd for subcmd in subcommands if subcmd.startswith(current_input)]
+                    for subcmd in matching_subcommands:
+                        suggestions.append({
+                            "command": f"nsds {category} {subcmd}",
+                            "description": f"NSDS {category} {subcmd} command"
+                        })
+        
+        # Always check for system command completions
+        for cmd in self.base_commands["system"]["commands"]:
+            if cmd.startswith(current_input):
+                suggestions.append({
+                    "command": cmd,
+                    "description": f"System command: {cmd}"
+                })
         
         return suggestions
     
@@ -171,6 +202,40 @@ class CommandSuggestionEngine:
                         suggestions.append({"command": "nsds config smb list", "description": "List SMB configuration"})
                     else:
                         suggestions.append({"command": "nsds config cluster list", "description": "List cluster configurations"})
+        
+        # Direct NSDS category detection without nsds prefix
+        elif current_input == "auth" or current_input == "au":
+            suggestions.append({"command": "nsds auth show", "description": "Display auth configuration"})
+            suggestions.append({"command": "nsds auth init", "description": "Initialize authentication"})
+        elif current_input == "cluster" or current_input == "cl":
+            suggestions.append({"command": "nsds cluster status", "description": "Show cluster status"})
+            suggestions.append({"command": "nsds cluster start", "description": "Start cluster services"})
+        elif current_input == "config" or current_input == "co":
+            suggestions.append({"command": "nsds config cluster list", "description": "List cluster configurations"})
+            suggestions.append({"command": "nsds config nfs list", "description": "List NFS configuration"})
+        elif current_input == "node" or current_input == "no":
+            suggestions.append({"command": "nsds node status", "description": "Show node status"})
+            suggestions.append({"command": "nsds node start", "description": "Start services on node"})
+        elif current_input == "export" or current_input == "ex":
+            suggestions.append({"command": "nsds export nfs list", "description": "List NFS exports"})
+            suggestions.append({"command": "nsds export smb list", "description": "List SMB shares"})
+        elif current_input == "filesystem" or current_input == "fi":
+            suggestions.append({"command": "nsds filesystem list", "description": "List filesystems"})
+        
+        # Common NSDS subcommands without prefix
+        elif current_input == "show" or current_input == "sh":
+            suggestions.append({"command": "nsds auth show", "description": "Show auth configuration"})
+            suggestions.append({"command": "nsds export nfs show", "description": "Show NFS export details"})
+        elif current_input == "list" or current_input == "li":
+            suggestions.append({"command": "nsds config nfs list", "description": "List NFS configuration"})
+            suggestions.append({"command": "nsds export smb list", "description": "List SMB shares"})
+            suggestions.append({"command": "nsds filesystem list", "description": "List filesystems"})
+        elif current_input == "status" or current_input == "st":
+            suggestions.append({"command": "nsds cluster status", "description": "Show cluster status"})
+            suggestions.append({"command": "nsds node status", "description": "Show node status"})
+        elif current_input == "start":
+            suggestions.append({"command": "nsds cluster start", "description": "Start all cluster services"})
+            suggestions.append({"command": "nsds node start", "description": "Start services on a node"})
         
         # Process commands
         elif self.patterns["process_management"].match(current_input):
