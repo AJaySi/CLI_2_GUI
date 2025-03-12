@@ -32,25 +32,34 @@ def format_timestamp():
 def update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder):
     """Update UI elements from command output queue"""
     try:
-        while True:
-            msg_type, data = st.session_state.command_executor._output_queue.get_nowait()
-            if msg_type == 'output':
-                st.session_state.last_output = st.session_state.command_executor.get_output()
-                output_placeholder.code(st.session_state.last_output)
-            elif msg_type == 'progress':
-                st.session_state.progress_value = data
-                if data > 0:
-                    progress_placeholder.progress(data)
-            elif msg_type == 'status':
-                is_success, text = data
-                if is_success:
-                    status_placeholder.success(text)
-                else:
-                    status_placeholder.error(text)
-            elif msg_type == 'error':
-                status_placeholder.error(data)
-    except Empty:
-        pass
+        # Limit the number of messages processed in each update to prevent blocking
+        max_messages = 10
+        msg_count = 0
+        
+        while msg_count < max_messages:
+            try:
+                msg_type, data = st.session_state.command_executor._output_queue.get_nowait()
+                msg_count += 1
+                
+                if msg_type == 'output':
+                    st.session_state.last_output = st.session_state.command_executor.get_output()
+                    output_placeholder.code(st.session_state.last_output)
+                elif msg_type == 'progress':
+                    st.session_state.progress_value = data
+                    if data > 0:
+                        progress_placeholder.progress(data)
+                elif msg_type == 'status':
+                    is_success, text = data
+                    if is_success:
+                        status_placeholder.success(text)
+                    else:
+                        status_placeholder.error(text)
+                elif msg_type == 'error':
+                    status_placeholder.error(data)
+            except Empty:
+                break
+    except Exception as e:
+        st.error(f"Error updating UI: {str(e)}")
 
 def nsds_command_center():
     """NSDS Command Center UI"""
@@ -229,12 +238,15 @@ def terminal_page():
         st.session_state.command_input_default = command
 
     with col2:
-        from voice_input import voice_input_component, handle_voice_input
-        voice_input_component()
-        voice_command = handle_voice_input()
-        if voice_command:
-            st.session_state.voice_command_pending = voice_command
-            st.rerun()
+        try:
+            from voice_input import voice_input_component, handle_voice_input
+            voice_input_component()
+            voice_command = handle_voice_input()
+            if voice_command:
+                st.session_state.voice_command_pending = voice_command
+        except Exception as e:
+            st.warning(f"Voice input unavailable: {str(e)}")
+            pass
 
     with col3:
         execute = st.button("Execute", key="execute_button", type="primary", use_container_width=True)
@@ -299,7 +311,7 @@ def terminal_page():
     # Update UI elements
     if st.session_state.command_executor.is_running():
         update_ui_from_queue(output_placeholder, progress_placeholder, status_placeholder)
-        time.sleep(0.1)
+        # Use st.experimental_rerun() instead of rerun() with delay, which can cause issues
         st.rerun()
 
     # Display current output
@@ -309,31 +321,48 @@ def terminal_page():
         progress_placeholder.progress(st.session_state.progress_value)
 
 def main():
-    # Set page config
-    st.set_page_config(
-        page_title="Web Terminal",
-        page_icon="🖥️",
-        layout="wide",
-        menu_items={
-            'Get Help': 'https://www.streamlit.io/community',
-            'Report a bug': 'https://github.com/streamlit/streamlit/issues',
-            'About': 'NSDS Command Center & Web Terminal Interface'
-        }
-    )
+    try:
+        # Set page config
+        st.set_page_config(
+            page_title="Web Terminal",
+            page_icon="🖥️",
+            layout="wide",
+            menu_items={
+                'Get Help': 'https://www.streamlit.io/community',
+                'Report a bug': 'https://github.com/streamlit/streamlit/issues',
+                'About': 'NSDS Command Center & Web Terminal Interface'
+            }
+        )
 
-    # Initialize session state
-    initialize_session_state()
+        # Initialize session state
+        initialize_session_state()
 
-    # Apply custom styles
-    apply_styles()
+        # Apply custom styles
+        apply_styles()
 
-    # Add a simple element to ensure page renders
-    if st.session_state.get('_test_element', None) is None:
-        st.session_state._test_element = True
-        st.info("Initializing Web Terminal Interface...")
-
-    # Main terminal page
-    terminal_page()
+        # Use a placeholder to show a simple loading message first
+        with st.empty():
+            if st.session_state.get('_test_element', None) is None:
+                st.session_state._test_element = True
+                st.info("Initializing Web Terminal Interface...")
+            
+            # Main terminal page
+            terminal_page()
+    except Exception as e:
+        st.error(f"An error occurred during application startup: {str(e)}")
+        st.info("Try refreshing the page. If the issue persists, check your streamlit installation.")
+        
+        # Display a simple command line as fallback
+        st.subheader("Simple Command Line")
+        cmd = st.text_input("Enter a command to execute:")
+        if st.button("Run"):
+            if cmd:
+                try:
+                    import subprocess
+                    result = subprocess.check_output(cmd, shell=True, text=True)
+                    st.code(result)
+                except Exception as ex:
+                    st.error(f"Command execution failed: {str(ex)}")
 
 if __name__ == "__main__":
     main()
