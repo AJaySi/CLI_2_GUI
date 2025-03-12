@@ -23,8 +23,8 @@ def initialize_session_state():
         st.session_state.suggestion_engine = CommandSuggestionEngine()
     if 'command_input' not in st.session_state:
         st.session_state.command_input = ""
-    if 'current_typing' not in st.session_state:
-        st.session_state.current_typing = ""
+    if 'prev_command' not in st.session_state:
+        st.session_state.prev_command = ""
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -321,9 +321,8 @@ def run_nsds_command(command):
     # and will be found in the PATH when executing commands
     st.session_state.next_command = command
     
-    # Reset current_typing to clear suggestions
-    if 'current_typing' in st.session_state:
-        del st.session_state.current_typing
+    # Reset command tracking    
+    st.session_state.prev_command = ""
         
     st.rerun()
 
@@ -574,31 +573,35 @@ def main():
         input_container = st.container()
         input_col1, input_col2 = input_container.columns([9, 1])
         
-        # Function to update suggestions as user types
-        def update_suggestions():
-            if "command_input" in st.session_state:
-                current_input = st.session_state.command_input
-                # Store the value to use for suggestions
-                st.session_state.current_typing = current_input
-                # Force a rerun to update suggestions based on current typing
-                st.rerun()
-        
         with input_col1:
-            # Get the current input
-            current_typing = st.session_state.get('current_typing', next_command)
+            # Use a key for detecting changes without callback
+            if next_command:
+                # We have a command from sidebar, use it and clear
+                st.session_state.command_input = next_command
             
-            # Text input for command with on_change callback to update in real-time
+            # Text input for command - Streamlit will automatically detect changes
             command = st.text_input(
                 "Enter command",
-                value=next_command if next_command else st.session_state.get('command_input', ''),
+                value=st.session_state.get('command_input', ''),
                 placeholder="Type your command here (e.g., ls, pwd, python)",
                 label_visibility="collapsed",
-                key="command_input",
-                on_change=update_suggestions
+                key="command_input"
             )
             
-            # Show suggestions based on current typing
-            suggestions = st.session_state.suggestion_engine.get_suggestions(current_typing)
+            # Check if command has changed since last render
+            if 'prev_command' not in st.session_state:
+                st.session_state.prev_command = ''
+                
+            # Always get suggestions for current command input
+            # This will update every time the app reruns
+            
+            # Track if the command changed to update the UI accordingly
+            current_command = st.session_state.command_input
+            command_changed = current_command != st.session_state.prev_command
+            st.session_state.prev_command = current_command
+            
+            # Show suggestions based on current input
+            suggestions = st.session_state.suggestion_engine.get_suggestions(current_command)
             if suggestions:
                 # Suggestion container with custom styling
                 with st.container():
@@ -632,9 +635,6 @@ def main():
                             help=suggestion['description']
                         ):
                             st.session_state.next_command = suggestion['command']
-                            # Clear current_typing to refresh the suggestion view
-                            if 'current_typing' in st.session_state:
-                                del st.session_state.current_typing
                             st.rerun()
         
         # Voice input in the same row as command input
