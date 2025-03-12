@@ -1017,8 +1017,8 @@ def main():
             st.session_state.next_command = ''
         
         # Command input area with voice input and execute button
-        # Create 3 columns for: text input (reduced by 30%), voice button, and execute button
-        input_col, voice_col, execute_col = st.columns([4.2, 0.7, 1.3])
+        # Create 3 columns for: text input (reduced by 30%), voice button, and execute button - placing voice and execute closer
+        input_col, voice_col, execute_col = st.columns([4.2, 0.6, 1.2])
         
         # Command input field in the first column
         with input_col:
@@ -1030,11 +1030,9 @@ def main():
                 key="command_input"
             )
         
-        # Voice input in the middle column
+        # Voice input in the middle column - ensure perfect vertical alignment
         with voice_col:
-            # Create some vertical space to align with text input
-            st.markdown("<div style='padding-top: 5px;'></div>", unsafe_allow_html=True)
-            # Voice input integration
+            # Voice input integration - without extra padding to ensure alignment
             voice_text = handle_voice_input()
             if voice_text:
                 st.session_state.next_command = voice_text
@@ -1042,9 +1040,7 @@ def main():
         
         # Execute button in the third column
         with execute_col:
-            # Create some vertical space to align with text input
-            st.markdown("<div style='padding-top: 5px;'></div>", unsafe_allow_html=True)
-            # Execute button
+            # Execute button - no extra padding to ensure perfect alignment
             execute = st.button("Execute", type="primary", use_container_width=True)
             
         # Add a session state to track if execute was clicked

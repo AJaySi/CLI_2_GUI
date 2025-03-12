@@ -10,7 +10,7 @@ def voice_input_component():
             id="startButton" 
             aria-label="Start voice input" 
             title="Click to start voice input"
-            style="background-color: #61afef; color: #282c34; border: 1px solid #61afef; border-radius: 4px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px;"
+            style="background-color: #61afef; color: #282c34; border: 1px solid #61afef; border-radius: 4px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 38px; height: 36px; margin: 0;"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" aria-hidden="true" viewBox="0 0 16 16">
                 <path d="M8 8a3 3 0 0 0 3-3V3a3 3 0 0 0-6 0v2a3 3 0 0 0 3 3z"/>
@@ -127,8 +127,8 @@ def voice_input_component():
     </div>
     """
     
-    # Component with minimal height
-    component_value = components.html(voice_js, height=65)
+    # Component with minimal height, exactly matching input field height
+    component_value = components.html(voice_js, height=45)
     return component_value
 
 def handle_voice_input():
