@@ -23,6 +23,8 @@ def initialize_session_state():
         st.session_state.suggestion_engine = CommandSuggestionEngine()
     if 'command_input' not in st.session_state:
         st.session_state.command_input = ""
+    if 'current_typing' not in st.session_state:
+        st.session_state.current_typing = ""
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -318,6 +320,11 @@ def run_nsds_command(command):
     # We don't need to replace the path as our stub is now installed at /tmp/nsds
     # and will be found in the PATH when executing commands
     st.session_state.next_command = command
+    
+    # Reset current_typing to clear suggestions
+    if 'current_typing' in st.session_state:
+        del st.session_state.current_typing
+        
     st.rerun()
 
 def main():
@@ -567,56 +574,68 @@ def main():
         input_container = st.container()
         input_col1, input_col2 = input_container.columns([9, 1])
         
+        # Function to update suggestions as user types
+        def update_suggestions():
+            if "command_input" in st.session_state:
+                current_input = st.session_state.command_input
+                # Store the value to use for suggestions
+                st.session_state.current_typing = current_input
+                # Force a rerun to update suggestions based on current typing
+                st.rerun()
+        
         with input_col1:
-            # Save the current input to session state to track it for suggestions
-            current_input = st.session_state.get('command_input', next_command)
+            # Get the current input
+            current_typing = st.session_state.get('current_typing', next_command)
             
-            # Text input for command
+            # Text input for command with on_change callback to update in real-time
             command = st.text_input(
                 "Enter command",
-                value=next_command,
+                value=next_command if next_command else st.session_state.get('command_input', ''),
                 placeholder="Type your command here (e.g., ls, pwd, python)",
                 label_visibility="collapsed",
-                key="command_input"
+                key="command_input",
+                on_change=update_suggestions
             )
             
-            # Show suggestions based on input - only if command input changes or is not empty
-            if command != current_input or command:
-                suggestions = st.session_state.suggestion_engine.get_suggestions(command)
-                if suggestions:
-                    # Suggestion container with custom styling
-                    with st.container():
-                        st.markdown("""
-                        <style>
-                            .suggestion-container {
-                                background-color: #383c44;
-                                border-radius: 4px;
-                                margin-top: 4px;
-                                padding: 8px;
-                            }
-                            .suggestion-command {
-                                color: #98c379; /* Atom green */
-                                font-family: monospace;
-                                font-weight: 500;
-                            }
-                            .suggestion-description {
-                                color: #abb2bf; /* Atom foreground */
-                                font-size: 0.85em;
-                                margin-left: 10px;
-                            }
-                        </style>
-                        <div class="suggestion-container">
-                            <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">Suggestions:</p>
-                        """, unsafe_allow_html=True)
-                        
-                        for suggestion in suggestions:
-                            if st.button(
-                                f"{suggestion['command']}",
-                                key=f"suggestion_{suggestion['command']}",
-                                help=suggestion['description']
-                            ):
-                                st.session_state.next_command = suggestion['command']
-                                st.rerun()
+            # Show suggestions based on current typing
+            suggestions = st.session_state.suggestion_engine.get_suggestions(current_typing)
+            if suggestions:
+                # Suggestion container with custom styling
+                with st.container():
+                    st.markdown("""
+                    <style>
+                        .suggestion-container {
+                            background-color: #383c44;
+                            border-radius: 4px;
+                            margin-top: 4px;
+                            padding: 8px;
+                        }
+                        .suggestion-command {
+                            color: #98c379; /* Atom green */
+                            font-family: monospace;
+                            font-weight: 500;
+                        }
+                        .suggestion-description {
+                            color: #abb2bf; /* Atom foreground */
+                            font-size: 0.85em;
+                            margin-left: 10px;
+                        }
+                    </style>
+                    <div class="suggestion-container">
+                        <p style="color: #61afef; margin-bottom: 6px; font-size: 0.9em;">Suggestions:</p>
+                    """, unsafe_allow_html=True)
+                    
+                    for suggestion in suggestions:
+                        if st.button(
+                            f"{suggestion['command']}",
+                            key=f"suggestion_{suggestion['command']}",
+                            help=suggestion['description']
+                        ):
+                            st.session_state.next_command = suggestion['command']
+                            # Clear current_typing to refresh the suggestion view
+                            if 'current_typing' in st.session_state:
+                                del st.session_state.current_typing
+                            st.rerun()
         
         # Voice input in the same row as command input
         with input_col2:
