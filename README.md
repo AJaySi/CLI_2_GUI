@@ -2,6 +2,27 @@
 
 A sophisticated transformation framework that converts command-line interface (CLI) screenshots into beautiful, interactive web-based graphical interfaces using Streamlit.
 
+## Architectural Overview - Core Components
+
+### a. AI Vision Processing 
+- Develop a framework for processing multiple screenshots as context
+- Screenshot Analysis: Direct processing of CLI screenshots using multimodal AI vision models
+- Command Structure Recognition: Using vision models to identify and understand the complete CLI structure
+- Interface Pattern Detection: Identifying UI patterns and command relationships directly from visuals
+- Create a vision-based classifier for command categories and purposes
+  
+### b. AI Generation System 
+- Create prompt engineering templates for CLI understanding
+- Design specialized prompts for command syntax understanding
+- Interface Blueprint Creator: Transforming visual analysis into Streamlit component specifications
+- Structure Mapper: Converting recognized CLI elements into logical GUI hierarchies
+- Create a mapping between recognized CLI patterns and Streamlit components
+- Code Generator: Producing fully functional Streamlit code from the interface blueprint
+
+### 3. User Interface
+- Upload Interface
+- Preview & Customization
+- Export & Deployment
 ![Terminal Interface](generated-icon.png)
 
 ## Overview
