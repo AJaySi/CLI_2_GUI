@@ -1017,8 +1017,8 @@ def main():
             st.session_state.next_command = ''
         
         # Command input area with voice input and execute button
-        # Create 3 columns for: text input, voice button, and execute button
-        input_col, voice_col, execute_col = st.columns([6, 1, 1])
+        # Create 3 columns for: text input (reduced by 30%), voice button, and execute button
+        input_col, voice_col, execute_col = st.columns([4.2, 1, 1])
         
         # Command input field in the first column
         with input_col:
@@ -1047,8 +1047,17 @@ def main():
             # Execute button
             execute = st.button("Execute", type="primary", use_container_width=True)
             
-        # Command suggestions section - only show if there's input to suggest from
-        if command:
+        # Add a session state to track if execute was clicked
+        if 'hide_suggestions' not in st.session_state:
+            st.session_state.hide_suggestions = False
+            
+        # Reset hide_suggestions flag if command input changes
+        if 'last_command' not in st.session_state or st.session_state.last_command != command:
+            st.session_state.hide_suggestions = False
+            st.session_state.last_command = command
+            
+        # Command suggestions section - only show if there's input to suggest from and execute wasn't clicked
+        if command and not st.session_state.hide_suggestions:
             suggestions = st.session_state.suggestion_engine.get_suggestions(command)
             if suggestions:
                 st.markdown("""
@@ -1150,6 +1159,9 @@ def main():
     # Execute command if requested
     if execute and command.strip():
         try:
+            # Hide suggestions when execute is clicked
+            st.session_state.hide_suggestions = True
+            
             # Reset output
             st.session_state.current_output = ""
             output_placeholder.code("")
