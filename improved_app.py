@@ -339,9 +339,200 @@ def main():
     # Initialize session state before CSS
     initialize_session_state()
     
-    # Apply the selected theme (if accessibility mode is off)
-    if not st.session_state.accessibility_mode:
-        apply_styles(st.session_state.selected_theme)
+    # Apply custom styling based on accessibility mode
+    if st.session_state.accessibility_mode:
+        # High Contrast Accessibility Styling
+        st.markdown("""
+        <style>
+            /* Main app styling with High Contrast for accessibility */
+            .main .block-container {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                background-color: #000000;
+                color: #ffffff;
+            }
+            
+            /* Make entire background black for maximum contrast */
+            .stApp {
+                background-color: #000000;
+            }
+            
+            /* Title styling - larger and brighter for visibility */
+            h1 {
+                color: #ffffff !important;
+                font-weight: 700;
+                font-size: 2.2rem;
+                margin-bottom: 1.5rem;
+                border-bottom: 2px solid #ffffff;
+                padding-bottom: 0.8rem;
+            }
+            
+            /* Header styling - yellow for high contrast */
+            h3 {
+                color: #ffff00 !important;
+                font-weight: 700;
+                font-size: 1.5rem;
+                margin-top: 1.8rem;
+                margin-bottom: 1.2rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #ffff00;
+            }
+            
+            /* Text color - bright white for better readability */
+            p, span, div {
+                color: #ffffff;
+            }
+            
+            /* Code output area - high contrast */
+            pre {
+                background-color: #000080 !important;
+                color: #ffffff !important;
+                border: 2px solid #ffffff;
+                padding: 1rem;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
+            
+            /* Button styling - high contrast */
+            .stButton button {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-weight: 700;
+                border: 2px solid #000000;
+            }
+            
+            /* Primary button - green */
+            .stButton button[data-testid="baseButton-primary"] {
+                background-color: #00ff00 !important;
+                color: #000000 !important;
+                font-weight: 700;
+            }
+            
+            /* Secondary button - red */
+            .stButton button[data-testid="baseButton-secondary"] {
+                background-color: #ff0000 !important;
+                color: #ffffff !important;
+                font-weight: 700;
+            }
+            
+            /* Input field - high contrast */
+            div[data-testid="stTextInput"] input {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                border: 2px solid #ffffff !important;
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        # Modern Professional Blue Gradient Styling
+        st.markdown("""
+        <style>
+            /* Main app styling with blue gradient background */
+            .stApp {
+                background: linear-gradient(135deg, #1a2a6c, #2a3e89, #2c4893);
+            }
+            
+            /* Main content area styling */
+            .main .block-container {
+                background-color: rgba(22, 30, 55, 0.8);
+                border-radius: 10px;
+                padding: 2rem;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                margin: 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            /* Title styling */
+            h1 {
+                color: #ffffff !important;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+                padding-bottom: 0.8rem;
+                border-bottom: 1px solid rgba(100, 181, 246, 0.5);
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            
+            /* Header styling */
+            h3 {
+                color: #90caf9 !important;
+                font-weight: 600;
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid rgba(100, 181, 246, 0.3);
+            }
+            
+            /* Text styling */
+            p, span, div {
+                color: #e1e1e6;
+            }
+            
+            /* Code output area - terminal style */
+            pre {
+                background-color: #0d1117 !important;
+                color: #c9d1d9 !important;
+                border-radius: 6px;
+                padding: 1rem;
+                border: 1px solid #30363d;
+                box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+                font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            }
+            
+            /* Command input styling */
+            div[data-testid="stTextInput"] input {
+                background-color: #162231 !important;
+                color: #e2e8f0 !important;
+                border: 1px solid #1e88e5 !important;
+                border-radius: 4px;
+                padding: 0.6rem 1rem;
+                font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            
+            div[data-testid="stTextInput"] input:focus {
+                border: 1px solid #64b5f6 !important;
+                box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.3);
+            }
+            
+            /* Button styling */
+            .stButton button {
+                border-radius: 4px;
+                border: none;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+                letter-spacing: 0.5px;
+            }
+            
+            .stButton button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* Primary button */
+            .stButton button[data-testid="baseButton-primary"] {
+                background-color: #1e88e5 !important;
+                color: white !important;
+            }
+            
+            /* Secondary button */
+            .stButton button[data-testid="baseButton-secondary"] {
+                background-color: #e53935 !important;
+                color: white !important;
+            }
+            
+            /* Status indicators */
+            div.stAlert {
+                border: none;
+                border-radius: 4px;
+            }
+        </style>
+        """, unsafe_allow_html=True)
     
     # Add CSS for right sidebar
     st.markdown("""
@@ -434,298 +625,6 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Apply custom CSS based on selected theme
-    if st.session_state.accessibility_mode:
-        # High Contrast Accessibility Mode Styling
-        st.markdown("""
-        <style>
-            /* Main app styling with High Contrast for accessibility */
-            .main .block-container {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-                background-color: #000000;
-                color: #ffffff;
-            }
-            
-            /* Make entire background black for maximum contrast */
-            .stApp {
-                background-color: #000000;
-            }
-            
-            /* Title styling - larger and brighter for visibility */
-            h1 {
-                color: #ffffff;
-                font-weight: 700;
-                font-size: 2.2rem;
-                margin-bottom: 1.5rem;
-                border-bottom: 2px solid #ffffff;
-                padding-bottom: 0.8rem;
-            }
-            
-            /* Header styling - yellow for high contrast */
-            h3 {
-                color: #ffff00;
-                font-weight: 700;
-                font-size: 1.5rem;
-                margin-top: 1.8rem;
-                margin-bottom: 1.2rem;
-                padding-bottom: 0.5rem;
-                border-bottom: 2px solid #ffff00;
-            }
-            
-            /* Text color - bright white for better readability */
-            p, span, div {
-                color: #ffffff;
-                font-size: 1.1rem;
-                line-height: 1.6;
-            }
-            
-            /* Code output styling - maximum contrast */
-            pre {
-                background-color: #000000;
-                color: #00ff00; /* Bright green for maximum contrast */
-                padding: 1rem;
-                border-radius: 5px;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 1.1rem;
-                line-height: 1.6;
-                overflow-x: auto;
-                border: 2px solid #ffffff;
-            }
-            
-            /* Code blocks with larger text */
-            .stCodeBlock {
-                background-color: #000000;
-                font-size: 1.1rem;
-            }
-            
-            /* Larger and clearer button styling */
-            .stButton button {
-                border-radius: 4px;
-                font-weight: 700;
-                font-size: 1.1rem;
-                padding: 0.7rem 1rem;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            }
-            
-            /* Primary button - bright blue */
-            .stButton button[data-baseweb="button"] {
-                background-color: #0000ff;
-                color: #ffffff;
-                border: 2px solid #ffffff;
-            }
-            
-            /* Secondary button - bright red */
-            .stButton button[kind="secondary"] {
-                background-color: #ff0000;
-                color: #ffffff;
-                border: 2px solid #ffffff;
-            }
-            
-            /* Command input styling - larger and clearer */
-            div[data-testid="stTextInput"] input {
-                background-color: #000000;
-                color: #00ff00;
-                border: 2px solid #ffffff;
-                border-radius: 4px;
-                padding: 0.8rem;
-                font-size: 1.2rem;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            }
-            
-            /* Enhanced Sidebar styling */
-            .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
-                background-color: #000000;
-                border-right: 2px solid #ffffff;
-            }
-            
-            /* Sidebar text and content */
-            .sidebar .sidebar-content, section[data-testid="stSidebar"] {
-                background-color: #000000;
-            }
-            
-            /* Sidebar headers */
-            section[data-testid="stSidebar"] h1 {
-                color: #ffff00;
-                font-size: 1.8rem;
-                font-weight: 700;
-                padding-bottom: 0.7rem;
-                margin-bottom: 1.2rem;
-                border-bottom: 2px solid #ffffff;
-            }
-            
-            /* Sidebar subheaders */
-            section[data-testid="stSidebar"] h2, 
-            section[data-testid="stSidebar"] h3, 
-            section[data-testid="stSidebar"] .stMarkdown h3 {
-                color: #ffff00;
-                font-size: 1.4rem;
-                font-weight: 700;
-                margin-top: 1.4rem;
-                margin-bottom: 0.9rem;
-                padding-bottom: 0.4rem;
-                border-bottom: 2px solid #ffffff;
-            }
-            
-            /* Sidebar button containers */
-            section[data-testid="stSidebar"] .stButton {
-                margin-bottom: 0.7rem;
-            }
-            
-            /* Sidebar button styling */
-            section[data-testid="stSidebar"] .stButton button {
-                background-color: #000080;
-                color: #ffffff;
-                border: 2px solid #ffffff;
-                border-radius: 4px;
-                text-align: left;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 1.1rem;
-                font-weight: 600;
-                padding: 0.6rem;
-            }
-            
-            /* Sidebar button focus - for keyboard navigation */
-            section[data-testid="stSidebar"] .stButton button:focus {
-                outline: 3px solid #ffff00;
-                box-shadow: 0 0 0 5px rgba(255,255,0,0.5);
-            }
-            
-            /* Sidebar separators */
-            section[data-testid="stSidebar"] hr {
-                border-color: #ffffff;
-                border-width: 2px;
-                margin: 1.8rem 0;
-            }
-            
-            /* Sidebar expander */
-            .st-expanderContent {
-                background-color: #000000;
-                border: 2px solid #ffffff;
-                border-radius: 4px;
-                padding: 0.8rem;
-            }
-            
-            /* Voice button styling for better visibility */
-            #startButton {
-                background-color: #0000ff;
-                color: #ffffff;
-                border: 2px solid #ffffff;
-                padding: 0.8rem;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: 700;
-                font-size: 1.1rem;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            }
-            
-            #startButton:disabled {
-                background-color: #444444;
-                cursor: not-allowed;
-            }
-            
-            /* Status message styling */
-            div.stAlert {
-                background-color: #000000;
-                color: #ffffff;
-                border: 2px solid #ffffff;
-                border-radius: 4px;
-                padding: 1rem;
-                font-size: 1.1rem;
-            }
-            
-            /* Command history in sidebar */
-            .sidebar-content pre, section[data-testid="stSidebar"] code {
-                background-color: #000000;
-                color: #00ff00;
-                padding: 0.5rem;
-                border-radius: 4px;
-                font-size: 1rem;
-                border: 1px solid #ffffff;
-            }
-            
-            /* Success messages */
-            .element-container .stSuccess {
-                background-color: #004400;
-                color: #00ff00;
-                border: 2px solid #00ff00;
-                font-weight: 700;
-            }
-            
-            /* Error messages */
-            .element-container .stError {
-                background-color: #440000;
-                color: #ff0000;
-                border: 2px solid #ff0000;
-                font-weight: 700;
-            }
-            
-            /* Custom blinking cursor - larger and more visible */
-            .terminal-cursor::after {
-                content: "▋";
-                color: #ffffff;
-                font-size: 1.5rem;
-                animation: blink 1s step-end infinite;
-            }
-            
-            @keyframes blink {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0; }
-            }
-            
-            /* Suggestion container with higher contrast */
-            .suggestion-container {
-                background-color: #000080;
-                border: 2px solid #ffffff;
-                border-radius: 4px;
-                margin-top: 8px;
-                padding: 12px;
-            }
-            
-            .suggestion-command {
-                color: #00ff00;
-                font-family: monospace;
-                font-size: 1.1rem;
-                font-weight: 700;
-            }
-            
-            .suggestion-description {
-                color: #ffffff;
-                font-size: 1rem;
-                margin-left: 12px;
-                margin-top: 4px;
-            }
-            
-            /* Screen reader only elements */
-            .sr-only {
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                padding: 0;
-                margin: -1px;
-                overflow: hidden;
-                clip: rect(0, 0, 0, 0);
-                white-space: nowrap;
-                border-width: 0;
-            }
-            
-            /* Focus styling for accessibility */
-            :focus {
-                outline: 3px solid #ffff00;
-                outline-offset: 2px;
-            }
-            
-            /* Checkbox styling for the accessibility toggle */
-            [data-testid="stCheckbox"] {
-                margin: 1rem 0;
-            }
-            
-            [data-testid="stCheckbox"] label {
-                font-size: 1.1rem;
-                font-weight: 700;
-            }
-        </style>
-        """, unsafe_allow_html=True)
     # Theme is now handled by our apply_styles function when accessibility mode is off
     
     # Display the NSDS command sidebar (left sidebar)
