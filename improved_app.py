@@ -23,6 +23,8 @@ def initialize_session_state():
         st.session_state.suggestion_engine = CommandSuggestionEngine()
     if 'next_command' not in st.session_state:
         st.session_state.next_command = ""
+    if 'accessibility_mode' not in st.session_state:
+        st.session_state.accessibility_mode = False
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -105,6 +107,19 @@ def update_output_area(output_placeholder, status_placeholder):
 def nsds_basic_commands():
     """Display professional NSDS command sidebar based on original CLI structure"""
     st.sidebar.title("NSDS Command Center")
+    
+    # Accessibility Mode toggle
+    st.sidebar.markdown("### 👁️ Accessibility Settings")
+    accessibility_toggle = st.sidebar.checkbox(
+        "Enable Accessibility Mode", 
+        value=st.session_state.accessibility_mode,
+        help="High contrast mode with screen reader optimizations"
+    )
+    
+    # Update session state if toggle changed
+    if accessibility_toggle != st.session_state.accessibility_mode:
+        st.session_state.accessibility_mode = accessibility_toggle
+        st.rerun()  # Rerun the app to apply accessibility changes
     
     # Command Tree button - Shows all commands
     if st.sidebar.button("📋 Show All Commands", use_container_width=True, help="Display complete command tree"):
@@ -333,223 +348,516 @@ def main():
         layout="wide"
     )
     
-    # Apply custom CSS directly with Atom One Dark theme
-    st.markdown("""
-    <style>
-        /* Main app styling with Atom One Dark theme */
-        .main .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            background-color: #282c34;
-            color: #abb2bf;
-        }
-        
-        /* Make entire background match Atom One Dark */
-        .stApp {
-            background-color: #282c34;
-        }
-        
-        /* Title styling */
-        h1 {
-            color: #61afef;  /* Atom blue */
-            font-weight: 700;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid #3b4048;
-            padding-bottom: 0.5rem;
-        }
-        
-        /* Header styling */
-        h3 {
-            color: #c678dd; /* Atom purple */
-            font-weight: 600;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #3b4048;
-        }
-        
-        /* Text color */
-        p, span, div {
-            color: #abb2bf;
-        }
-        
-        /* Code output styling */
-        pre {
-            background-color: #21252b;
-            color: #98c379; /* Atom green */
-            padding: 1rem;
-            border-radius: 5px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            overflow-x: auto;
-            border: 1px solid #3b4048;
-        }
-        
-        /* Code blocks */
-        .stCodeBlock {
-            background-color: #21252b;
-        }
-        
-        /* Button styling */
-        .stButton button {
-            border-radius: 4px;
-            font-weight: 500;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-        
-        /* Primary button */
-        .stButton button[data-baseweb="button"] {
-            background-color: #61afef;
-            color: #282c34;
-            border: 1px solid #61afef;
-        }
-        
-        /* Secondary button */
-        .stButton button[kind="secondary"] {
-            background-color: #e06c75;
-            color: #282c34;
-            border: 1px solid #e06c75;
-        }
-        
-        /* Command input styling */
-        div[data-testid="stTextInput"] input {
-            background-color: #21252b;
-            color: #98c379;
-            border: 1px solid #3b4048;
-            border-radius: 4px;
-            padding: 0.5rem;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-        
-        /* Enhanced Sidebar styling */
-        .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
-            background-color: #21252b;
-            border-right: 1px solid #3b4048;
-        }
-        
-        /* Sidebar text and content */
-        .sidebar .sidebar-content, section[data-testid="stSidebar"] {
-            background-color: #21252b;
-        }
-        
-        /* Sidebar headers */
-        section[data-testid="stSidebar"] h1 {
-            color: #e5c07b;
-            font-size: 1.5rem;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid #3b4048;
-        }
-        
-        /* Sidebar subheaders */
-        section[data-testid="stSidebar"] h2, 
-        section[data-testid="stSidebar"] h3, 
-        section[data-testid="stSidebar"] .stMarkdown h3 {
-            color: #c678dd;
-            font-size: 1.2rem;
-            margin-top: 1.2rem;
-            margin-bottom: 0.7rem;
-            font-weight: 600;
-            padding-bottom: 0.3rem;
-            border-bottom: 1px solid #3b4048;
-        }
-        
-        /* Sidebar button containers */
-        section[data-testid="stSidebar"] .stButton {
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Sidebar button styling */
-        section[data-testid="stSidebar"] .stButton button {
-            background-color: #2c313a;
-            color: #abb2bf;
-            border: 1px solid #3b4048;
-            border-radius: 4px;
-            text-align: left;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            transition: all 0.2s ease;
-        }
-        
-        /* Sidebar button hover */
-        section[data-testid="stSidebar"] .stButton button:hover {
-            background-color: #333842;
-            border-color: #61afef;
-        }
-        
-        /* Sidebar separators */
-        section[data-testid="stSidebar"] hr {
-            border-color: #3b4048;
-            margin: 1.5rem 0;
-        }
-        
-        /* Sidebar expander */
-        .st-expanderContent {
-            background-color: #282c34;
-            border: 1px solid #3b4048;
-            border-radius: 4px;
-            padding: 0.5rem;
-        }
-        
-        /* Voice button styling */
-        #startButton {
-            background-color: #61afef;
-            color: #282c34;
-            border: 1px solid #61afef;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-        
-        #startButton:disabled {
-            background-color: #5c6370;
-            cursor: not-allowed;
-        }
-        
-        /* Status message styling */
-        div.stAlert {
-            background-color: #21252b;
-            color: #abb2bf;
-            border-radius: 4px;
-        }
-        
-        /* Command history in sidebar */
-        .sidebar-content pre, section[data-testid="stSidebar"] code {
-            background-color: #2c313a;
-            color: #98c379;
-            padding: 0.3rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-        
-        /* Success messages */
-        .element-container .stSuccess {
-            background-color: rgba(152, 195, 121, 0.2);
-            color: #98c379;
-        }
-        
-        /* Error messages */
-        .element-container .stError {
-            background-color: rgba(224, 108, 117, 0.2);
-            color: #e06c75;
-        }
-        
-        /* Custom blinking cursor */
-        .terminal-cursor::after {
-            content: "▋";
-            color: #61afef;
-            animation: blink 1s step-end infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Initialize session state
+    # Initialize session state before CSS
     initialize_session_state()
+    
+    # Apply custom CSS based on selected theme
+    if st.session_state.accessibility_mode:
+        # High Contrast Accessibility Mode Styling
+        st.markdown("""
+        <style>
+            /* Main app styling with High Contrast for accessibility */
+            .main .block-container {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                background-color: #000000;
+                color: #ffffff;
+            }
+            
+            /* Make entire background black for maximum contrast */
+            .stApp {
+                background-color: #000000;
+            }
+            
+            /* Title styling - larger and brighter for visibility */
+            h1 {
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 2.2rem;
+                margin-bottom: 1.5rem;
+                border-bottom: 2px solid #ffffff;
+                padding-bottom: 0.8rem;
+            }
+            
+            /* Header styling - yellow for high contrast */
+            h3 {
+                color: #ffff00;
+                font-weight: 700;
+                font-size: 1.5rem;
+                margin-top: 1.8rem;
+                margin-bottom: 1.2rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #ffff00;
+            }
+            
+            /* Text color - bright white for better readability */
+            p, span, div {
+                color: #ffffff;
+                font-size: 1.1rem;
+                line-height: 1.6;
+            }
+            
+            /* Code output styling - maximum contrast */
+            pre {
+                background-color: #000000;
+                color: #00ff00; /* Bright green for maximum contrast */
+                padding: 1rem;
+                border-radius: 5px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 1.1rem;
+                line-height: 1.6;
+                overflow-x: auto;
+                border: 2px solid #ffffff;
+            }
+            
+            /* Code blocks with larger text */
+            .stCodeBlock {
+                background-color: #000000;
+                font-size: 1.1rem;
+            }
+            
+            /* Larger and clearer button styling */
+            .stButton button {
+                border-radius: 4px;
+                font-weight: 700;
+                font-size: 1.1rem;
+                padding: 0.7rem 1rem;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            /* Primary button - bright blue */
+            .stButton button[data-baseweb="button"] {
+                background-color: #0000ff;
+                color: #ffffff;
+                border: 2px solid #ffffff;
+            }
+            
+            /* Secondary button - bright red */
+            .stButton button[kind="secondary"] {
+                background-color: #ff0000;
+                color: #ffffff;
+                border: 2px solid #ffffff;
+            }
+            
+            /* Command input styling - larger and clearer */
+            div[data-testid="stTextInput"] input {
+                background-color: #000000;
+                color: #00ff00;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                padding: 0.8rem;
+                font-size: 1.2rem;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            /* Enhanced Sidebar styling */
+            .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
+                background-color: #000000;
+                border-right: 2px solid #ffffff;
+            }
+            
+            /* Sidebar text and content */
+            .sidebar .sidebar-content, section[data-testid="stSidebar"] {
+                background-color: #000000;
+            }
+            
+            /* Sidebar headers */
+            section[data-testid="stSidebar"] h1 {
+                color: #ffff00;
+                font-size: 1.8rem;
+                font-weight: 700;
+                padding-bottom: 0.7rem;
+                margin-bottom: 1.2rem;
+                border-bottom: 2px solid #ffffff;
+            }
+            
+            /* Sidebar subheaders */
+            section[data-testid="stSidebar"] h2, 
+            section[data-testid="stSidebar"] h3, 
+            section[data-testid="stSidebar"] .stMarkdown h3 {
+                color: #ffff00;
+                font-size: 1.4rem;
+                font-weight: 700;
+                margin-top: 1.4rem;
+                margin-bottom: 0.9rem;
+                padding-bottom: 0.4rem;
+                border-bottom: 2px solid #ffffff;
+            }
+            
+            /* Sidebar button containers */
+            section[data-testid="stSidebar"] .stButton {
+                margin-bottom: 0.7rem;
+            }
+            
+            /* Sidebar button styling */
+            section[data-testid="stSidebar"] .stButton button {
+                background-color: #000080;
+                color: #ffffff;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                text-align: left;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 1.1rem;
+                font-weight: 600;
+                padding: 0.6rem;
+            }
+            
+            /* Sidebar button focus - for keyboard navigation */
+            section[data-testid="stSidebar"] .stButton button:focus {
+                outline: 3px solid #ffff00;
+                box-shadow: 0 0 0 5px rgba(255,255,0,0.5);
+            }
+            
+            /* Sidebar separators */
+            section[data-testid="stSidebar"] hr {
+                border-color: #ffffff;
+                border-width: 2px;
+                margin: 1.8rem 0;
+            }
+            
+            /* Sidebar expander */
+            .st-expanderContent {
+                background-color: #000000;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                padding: 0.8rem;
+            }
+            
+            /* Voice button styling for better visibility */
+            #startButton {
+                background-color: #0000ff;
+                color: #ffffff;
+                border: 2px solid #ffffff;
+                padding: 0.8rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 700;
+                font-size: 1.1rem;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            #startButton:disabled {
+                background-color: #444444;
+                cursor: not-allowed;
+            }
+            
+            /* Status message styling */
+            div.stAlert {
+                background-color: #000000;
+                color: #ffffff;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                padding: 1rem;
+                font-size: 1.1rem;
+            }
+            
+            /* Command history in sidebar */
+            .sidebar-content pre, section[data-testid="stSidebar"] code {
+                background-color: #000000;
+                color: #00ff00;
+                padding: 0.5rem;
+                border-radius: 4px;
+                font-size: 1rem;
+                border: 1px solid #ffffff;
+            }
+            
+            /* Success messages */
+            .element-container .stSuccess {
+                background-color: #004400;
+                color: #00ff00;
+                border: 2px solid #00ff00;
+                font-weight: 700;
+            }
+            
+            /* Error messages */
+            .element-container .stError {
+                background-color: #440000;
+                color: #ff0000;
+                border: 2px solid #ff0000;
+                font-weight: 700;
+            }
+            
+            /* Custom blinking cursor - larger and more visible */
+            .terminal-cursor::after {
+                content: "▋";
+                color: #ffffff;
+                font-size: 1.5rem;
+                animation: blink 1s step-end infinite;
+            }
+            
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+            }
+            
+            /* Suggestion container with higher contrast */
+            .suggestion-container {
+                background-color: #000080;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                margin-top: 8px;
+                padding: 12px;
+            }
+            
+            .suggestion-command {
+                color: #00ff00;
+                font-family: monospace;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+            
+            .suggestion-description {
+                color: #ffffff;
+                font-size: 1rem;
+                margin-left: 12px;
+                margin-top: 4px;
+            }
+            
+            /* Screen reader only elements */
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border-width: 0;
+            }
+            
+            /* Focus styling for accessibility */
+            :focus {
+                outline: 3px solid #ffff00;
+                outline-offset: 2px;
+            }
+            
+            /* Checkbox styling for the accessibility toggle */
+            [data-testid="stCheckbox"] {
+                margin: 1rem 0;
+            }
+            
+            [data-testid="stCheckbox"] label {
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        # Regular Atom One Dark theme
+        st.markdown("""
+        <style>
+            /* Main app styling with Atom One Dark theme */
+            .main .block-container {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                background-color: #282c34;
+                color: #abb2bf;
+            }
+            
+            /* Make entire background match Atom One Dark */
+            .stApp {
+                background-color: #282c34;
+            }
+            
+            /* Title styling */
+            h1 {
+                color: #61afef;  /* Atom blue */
+                font-weight: 700;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid #3b4048;
+                padding-bottom: 0.5rem;
+            }
+            
+            /* Header styling */
+            h3 {
+                color: #c678dd; /* Atom purple */
+                font-weight: 600;
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid #3b4048;
+            }
+            
+            /* Text color */
+            p, span, div {
+                color: #abb2bf;
+            }
+            
+            /* Code output styling */
+            pre {
+                background-color: #21252b;
+                color: #98c379; /* Atom green */
+                padding: 1rem;
+                border-radius: 5px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                overflow-x: auto;
+                border: 1px solid #3b4048;
+            }
+            
+            /* Code blocks */
+            .stCodeBlock {
+                background-color: #21252b;
+            }
+            
+            /* Button styling */
+            .stButton button {
+                border-radius: 4px;
+                font-weight: 500;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            /* Primary button */
+            .stButton button[data-baseweb="button"] {
+                background-color: #61afef;
+                color: #282c34;
+                border: 1px solid #61afef;
+            }
+            
+            /* Secondary button */
+            .stButton button[kind="secondary"] {
+                background-color: #e06c75;
+                color: #282c34;
+                border: 1px solid #e06c75;
+            }
+            
+            /* Command input styling */
+            div[data-testid="stTextInput"] input {
+                background-color: #21252b;
+                color: #98c379;
+                border: 1px solid #3b4048;
+                border-radius: 4px;
+                padding: 0.5rem;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            /* Enhanced Sidebar styling */
+            .css-1d391kg, .css-1lcbmhc, section[data-testid="stSidebar"] {
+                background-color: #21252b;
+                border-right: 1px solid #3b4048;
+            }
+            
+            /* Sidebar text and content */
+            .sidebar .sidebar-content, section[data-testid="stSidebar"] {
+                background-color: #21252b;
+            }
+            
+            /* Sidebar headers */
+            section[data-testid="stSidebar"] h1 {
+                color: #e5c07b;
+                font-size: 1.5rem;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid #3b4048;
+            }
+            
+            /* Sidebar subheaders */
+            section[data-testid="stSidebar"] h2, 
+            section[data-testid="stSidebar"] h3, 
+            section[data-testid="stSidebar"] .stMarkdown h3 {
+                color: #c678dd;
+                font-size: 1.2rem;
+                margin-top: 1.2rem;
+                margin-bottom: 0.7rem;
+                font-weight: 600;
+                padding-bottom: 0.3rem;
+                border-bottom: 1px solid #3b4048;
+            }
+            
+            /* Sidebar button containers */
+            section[data-testid="stSidebar"] .stButton {
+                margin-bottom: 0.5rem;
+            }
+            
+            /* Sidebar button styling */
+            section[data-testid="stSidebar"] .stButton button {
+                background-color: #2c313a;
+                color: #abb2bf;
+                border: 1px solid #3b4048;
+                border-radius: 4px;
+                text-align: left;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                transition: all 0.2s ease;
+            }
+            
+            /* Sidebar button hover */
+            section[data-testid="stSidebar"] .stButton button:hover {
+                background-color: #333842;
+                border-color: #61afef;
+            }
+            
+            /* Sidebar separators */
+            section[data-testid="stSidebar"] hr {
+                border-color: #3b4048;
+                margin: 1.5rem 0;
+            }
+            
+            /* Sidebar expander */
+            .st-expanderContent {
+                background-color: #282c34;
+                border: 1px solid #3b4048;
+                border-radius: 4px;
+                padding: 0.5rem;
+            }
+            
+            /* Voice button styling */
+            #startButton {
+                background-color: #61afef;
+                color: #282c34;
+                border: 1px solid #61afef;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 500;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+            
+            #startButton:disabled {
+                background-color: #5c6370;
+                cursor: not-allowed;
+            }
+            
+            /* Status message styling */
+            div.stAlert {
+                background-color: #21252b;
+                color: #abb2bf;
+                border-radius: 4px;
+            }
+            
+            /* Command history in sidebar */
+            .sidebar-content pre, section[data-testid="stSidebar"] code {
+                background-color: #2c313a;
+                color: #98c379;
+                padding: 0.3rem;
+                border-radius: 4px;
+                font-size: 0.85rem;
+            }
+            
+            /* Success messages */
+            .element-container .stSuccess {
+                background-color: rgba(152, 195, 121, 0.2);
+                color: #98c379;
+            }
+            
+            /* Error messages */
+            .element-container .stError {
+                background-color: rgba(224, 108, 117, 0.2);
+                color: #e06c75;
+            }
+            
+            /* Custom blinking cursor */
+            .terminal-cursor::after {
+                content: "▋";
+                color: #61afef;
+                animation: blink 1s step-end infinite;
+            }
+            
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+            }
+        </style>
+        """, unsafe_allow_html=True)
     
     # Display the NSDS command sidebar
     nsds_basic_commands()
