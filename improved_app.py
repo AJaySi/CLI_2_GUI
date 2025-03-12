@@ -5,6 +5,7 @@ from datetime import datetime
 import threading
 from queue import Queue, Empty
 from voice_input import handle_voice_input
+from styles import apply_styles
 
 # Initialize session state variables
 def initialize_session_state():
@@ -142,6 +143,9 @@ def main():
         page_icon="🖥️",
         layout="wide"
     )
+    
+    # Apply custom styles
+    apply_styles()
     
     # Initialize session state
     initialize_session_state()
