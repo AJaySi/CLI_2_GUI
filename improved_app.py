@@ -5,7 +5,6 @@ from datetime import datetime
 import threading
 from queue import Queue, Empty
 from voice_input import handle_voice_input
-from styles import apply_styles
 
 # Initialize session state variables
 def initialize_session_state():
@@ -144,8 +143,84 @@ def main():
         layout="wide"
     )
     
-    # Apply custom styles
-    apply_styles()
+    # Apply custom CSS directly
+    st.markdown("""
+    <style>
+        /* Main app styling */
+        .main .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        /* Title styling */
+        h1 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        /* Header styling */
+        h3 {
+            color: #34495e;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        /* Code output styling */
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        /* Button styling */
+        .stButton button {
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        /* Primary button */
+        .stButton button[data-baseweb="button"] {
+            background-color: #2196f3;
+        }
+        
+        /* Secondary button */
+        .stButton button[kind="secondary"] {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        /* Command input styling */
+        div[data-testid="stTextInput"] input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+        
+        /* Voice button styling */
+        #startButton {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        #startButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Initialize session state
     initialize_session_state()
