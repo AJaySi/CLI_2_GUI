@@ -333,12 +333,7 @@ def nsds_basic_commands():
             if st.button("Process List", use_container_width=True, help="List running processes"):
                 run_nsds_command("ps aux | head -10")
     
-    # Display command history with better formatting 
-    st.sidebar.markdown("---")
-    if st.session_state.command_history:
-        with st.sidebar.expander("📜 Command History", expanded=False):
-            for cmd in reversed(st.session_state.command_history[-10:]):  # Show last 10 commands
-                st.code(f"[{cmd['timestamp']}] {cmd['command']}")
+    # Command history has been moved to the right sidebar
     
     # Add NSDS Help button
     st.sidebar.markdown("---")
@@ -359,15 +354,107 @@ def run_nsds_command(command):
     st.rerun()
 
 def main():
-    # Set page config
+    # Set page config with initial sidebar expanded state
     st.set_page_config(
         page_title="NSDS Terminal",
         page_icon="🖥️",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
     
     # Initialize session state before CSS
     initialize_session_state()
+    
+    # Add CSS for right sidebar
+    st.markdown("""
+    <style>
+        /* Right sidebar styling */
+        [data-testid="stSidebarContent"] ~ div {
+            background-color: #21252b;
+            border-left: 1px solid #3b4048;
+        }
+        
+        /* Right sidebar headers */
+        [data-testid="stSidebarContent"] ~ div h3 {
+            color: #56b6c2; /* Different color from left sidebar - Atom cyan */
+            font-size: 1.2rem;
+            margin-top: 1.2rem;
+            margin-bottom: 0.7rem;
+            font-weight: 600;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #3b4048;
+        }
+        
+        /* Command history item in right sidebar */
+        .command-history-item {
+            background-color: #2c313a;
+            border: 1px solid #3b4048;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .command-history-item:hover {
+            background-color: #333842;
+            border-color: #56b6c2;
+        }
+        
+        .command-text {
+            color: #98c379; /* Atom green */
+            font-weight: 500;
+        }
+        
+        .timestamp {
+            color: #7a818e;
+            font-size: 0.8em;
+            margin-top: 4px;
+        }
+        
+        /* Right sidebar buttons */
+        [data-testid="stSidebarContent"] ~ div .stButton button {
+            background-color: #2c313a;
+            color: #98c379;
+            border: 1px solid #3b4048;
+            text-align: left;
+            font-family: monospace;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        [data-testid="stSidebarContent"] ~ div .stButton button:hover {
+            background-color: #333842;
+            border-color: #56b6c2;
+        }
+        
+        /* High contrast version for accessibility mode */
+        .high-contrast [data-testid="stSidebarContent"] ~ div {
+            background-color: #000000;
+            border-left: 2px solid #ffffff;
+        }
+        
+        .high-contrast [data-testid="stSidebarContent"] ~ div h3 {
+            color: #00ffff;
+            border-bottom: 2px solid #ffffff;
+        }
+        
+        .high-contrast .command-history-item {
+            background-color: #000080;
+            border: 2px solid #ffffff;
+        }
+        
+        .high-contrast .command-text {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .high-contrast .timestamp {
+            color: #ffffff;
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Apply custom CSS based on selected theme
     if st.session_state.accessibility_mode:
