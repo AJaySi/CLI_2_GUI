@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 import threading
 from queue import Queue, Empty
+from voice_input import handle_voice_input
 
 # Initialize session state variables
 def initialize_session_state():
@@ -153,13 +154,19 @@ def main():
     st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
     
     # Command input and execute button
-    col1, col2 = st.columns([5, 1])
+    col1, col2, col3 = st.columns([5, 1, 1])
     
     # Check for command from sidebar
     next_command = st.session_state.get('next_command', '')
     if next_command:
         # Clear it after use
         st.session_state.next_command = ''
+    
+    # Check for voice input
+    voice_text = handle_voice_input()
+    if voice_text:
+        # Update the command with voice input
+        next_command = voice_text
     
     with col1:
         command = st.text_input(
@@ -171,6 +178,10 @@ def main():
     
     with col2:
         execute = st.button("Execute", type="primary", use_container_width=True)
+    
+    with col3:
+        st.markdown("<div style='margin-top: 7px;'></div>", unsafe_allow_html=True)
+        st.write("or")
     
     # Show stop button if a command is running
     if st.session_state.is_command_running and st.session_state.command_process:

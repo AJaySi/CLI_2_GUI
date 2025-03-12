@@ -3,110 +3,110 @@ import streamlit.components.v1 as components
 
 def voice_input_component():
     """Custom component for voice input using Web Speech API"""
-    components.html(
-        """
-        <div id="voice_container" style="display: flex; align-items: center;">
-            <button id="voice_button" 
-                    style="background-color: #3498db; 
-                           color: white; 
-                           border: none; 
-                           border-radius: 4px; 
-                           padding: 8px; 
-                           cursor: pointer;
-                           transition: all 0.3s ease;">
-                🎤
-            </button>
-            <div id="status" style="margin-left: 10px; color: #bbb;"></div>
-        </div>
-
+    # JavaScript code for voice recognition
+    voice_js = """
+    <div>
+        <button id="startButton" class="stButton">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 8a3 3 0 0 0 3-3V3a3 3 0 0 0-6 0v2a3 3 0 0 0 3 3z"/>
+                    <path d="M5 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                    <path d="M8 0a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0V4a4 4 0 0 0-4-4zm0 1a3 3 0 0 1 3 3v2a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z"/>
+                    <path d="M10.828 10.828a4 4 0 0 1-7.656 0h.06c0-.012 0-.024-.002-.036v-.276A1 1 0 0 1 4 9h8a1 1 0 0 1 .768.36v.276c0 .012 0 .024-.002.036h.06a4 4 0 0 1-7.656 0z"/>
+                    <path d="M8 11a5 5 0 0 0-5 5v3h10v-3a5 5 0 0 0-5-5z"/>
+                </svg>
+                <span>Voice Input</span>
+            </div>
+        </button>
+        <div id="status" style="margin-top:8px; color: gray; font-size: 0.875rem;"></div>
+        <div id="result" style="margin-top:8px; min-height: 20px;"></div>
+        
         <script>
-        const voiceButton = document.getElementById('voice_button');
-        const status = document.getElementById('status');
-        let recognition = null;
-
-        // Initialize speech recognition
-        function initSpeechRecognition() {
+            const startButton = document.getElementById('startButton');
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            // Check if browser supports speech recognition
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-
-                recognition.onstart = () => {
-                    voiceButton.style.backgroundColor = '#e74c3c';
-                    status.textContent = 'Listening...';
-                    status.style.opacity = '1';
-                };
-
-                recognition.onresult = (event) => {
-                    const text = event.results[0][0].transcript;
-                    window.parent.postMessage({
-                        type: 'streamlit:setComponentValue',
-                        value: text
-                    }, '*');
-                    status.textContent = 'Command received: ' + text;
-                };
-
-                recognition.onerror = (event) => {
-                    console.error('Speech recognition error:', event.error);
-                    status.textContent = 'Error: ' + event.error;
-                    status.style.opacity = '1';
-                    resetButton();
-                };
-
-                recognition.onend = () => {
-                    resetButton();
-                    setTimeout(() => {
-                        status.style.opacity = '0';
-                    }, 2000);
-                };
+            
+            if (!SpeechRecognition) {
+                statusDiv.innerHTML = "Your browser doesn't support voice recognition. Try Chrome or Edge.";
+                startButton.disabled = true;
             } else {
-                status.textContent = 'Speech recognition not supported';
-                status.style.opacity = '1';
-                voiceButton.disabled = true;
-            }
-        }
-
-        function resetButton() {
-            voiceButton.style.backgroundColor = '#3498db';
-        }
-
-        voiceButton.onclick = () => {
-            if (!recognition) {
-                initSpeechRecognition();
-            }
-
-            if (recognition) {
-                if (voiceButton.style.backgroundColor === 'rgb(231, 76, 60)') {
-                    recognition.stop();
-                } else {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                let finalTranscript = '';
+                
+                recognition.onstart = () => {
+                    statusDiv.innerHTML = "Listening... Speak now.";
+                    startButton.disabled = true;
+                    resultDiv.innerHTML = "";
+                    finalTranscript = '';
+                };
+                
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    resultDiv.innerHTML = 
+                        `<div style="color: #1565C0; font-weight: medium;">${finalTranscript}</div>` + 
+                        `<div style="color: gray;">${interimTranscript}</div>`;
+                };
+                
+                recognition.onerror = (event) => {
+                    statusDiv.innerHTML = `Error occurred: ${event.error}`;
+                    startButton.disabled = false;
+                };
+                
+                recognition.onend = () => {
+                    statusDiv.innerHTML = "Voice recognition ended.";
+                    startButton.disabled = false;
+                    
+                    // Send the recognized text to Streamlit
+                    if (finalTranscript) {
+                        const data = {
+                            text: finalTranscript
+                        };
+                        
+                        // Use Streamlit's sendBackData to communicate with the Python code
+                        window.parent.postMessage({
+                            type: "streamlit:setComponentValue",
+                            value: data
+                        }, "*");
+                    }
+                };
+                
+                startButton.onclick = () => {
                     recognition.start();
-                }
+                };
             }
-        };
         </script>
-        """,
-        height=50,
-    )
+    </div>
+    """
+    
+    # Component with default height
+    component_value = components.html(voice_js, height=130)
+    return component_value
 
 def handle_voice_input():
     """Handle voice input from the JavaScript component"""
-    result = components.html(
-        """
-        <script>
-        // Listen for voice input messages
-        window.addEventListener('message', function(e) {
-            if (e.data.type === 'streamlit:setComponentValue') {
-                window.parent.postMessage({
-                    type: 'streamlit:setComponentValue',
-                    value: e.data.value
-                }, '*');
-            }
-        });
-        </script>
-        """,
-        height=0
-    )
-
-    return result if result is not None else ""
+    voice_data = voice_input_component()
+    
+    if voice_data and isinstance(voice_data, dict) and 'text' in voice_data:
+        recognized_text = voice_data['text']
+        # Return the recognized text
+        return recognized_text
+    
+    # Return None if no valid voice input
+    return None
