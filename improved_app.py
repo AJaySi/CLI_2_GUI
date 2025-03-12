@@ -110,6 +110,15 @@ def nsds_basic_commands():
     
     # Accessibility Mode toggle
     st.sidebar.markdown("### 👁️ Accessibility Settings")
+    
+    # Add a screen reader only description that better explains accessibility features
+    st.sidebar.markdown("""
+    <div class="sr-only" aria-live="polite" role="status">
+        Accessibility mode provides high contrast colors, larger text, improved keyboard navigation,
+        and optimizations for screen readers.
+    </div>
+    """, unsafe_allow_html=True)
+    
     accessibility_toggle = st.sidebar.checkbox(
         "Enable Accessibility Mode", 
         value=st.session_state.accessibility_mode,
@@ -119,6 +128,15 @@ def nsds_basic_commands():
     # Update session state if toggle changed
     if accessibility_toggle != st.session_state.accessibility_mode:
         st.session_state.accessibility_mode = accessibility_toggle
+        
+        # Add a screen reader announcement when mode changes
+        mode_status = "enabled" if accessibility_toggle else "disabled"
+        st.sidebar.markdown(f"""
+        <div class="sr-only" aria-live="assertive" role="alert">
+            Accessibility mode {mode_status}. Page will refresh to apply changes.
+        </div>
+        """, unsafe_allow_html=True)
+        
         st.rerun()  # Rerun the app to apply accessibility changes
     
     # Command Tree button - Shows all commands
@@ -862,9 +880,24 @@ def main():
     # Display the NSDS command sidebar
     nsds_basic_commands()
     
-    # Main area
+    # Main area with improved accessibility
     st.title("NSDS Web Terminal")
-    st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
+    
+    # Main description with better explanations for screen readers
+    if st.session_state.accessibility_mode:
+        st.markdown("""
+        <p>
+            Welcome to the NSDS Web Terminal. This application allows you to execute commands in a 
+            terminal-like interface with voice input support. 
+            <span class="sr-only">Accessibility mode is enabled, providing high contrast colors and larger text.</span>
+        </p>
+        <p>
+            Enter commands in the text input below and press the Execute button or Enter key. 
+            You can also use the quick command buttons in the sidebar menu.
+        </p>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
     
     # Command input and execute button
     col1, col2 = st.columns([5, 1])
