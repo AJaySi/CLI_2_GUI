@@ -21,10 +21,8 @@ def initialize_session_state():
         st.session_state.output_queue = Queue()
     if 'suggestion_engine' not in st.session_state:
         st.session_state.suggestion_engine = CommandSuggestionEngine()
-    if 'command_input' not in st.session_state:
-        st.session_state.command_input = ""
-    if 'prev_command' not in st.session_state:
-        st.session_state.prev_command = ""
+    if 'next_command' not in st.session_state:
+        st.session_state.next_command = ""
 
 def format_timestamp():
     """Return formatted current timestamp"""
@@ -321,8 +319,9 @@ def run_nsds_command(command):
     # and will be found in the PATH when executing commands
     st.session_state.next_command = command
     
-    # Reset command tracking    
-    st.session_state.prev_command = ""
+    # Clear any existing command input to avoid conflicts
+    if 'command_input' in st.session_state:
+        del st.session_state.command_input
         
     st.rerun()
 
@@ -574,34 +573,25 @@ def main():
         input_col1, input_col2 = input_container.columns([9, 1])
         
         with input_col1:
-            # Use a key for detecting changes without callback
+            # Check for a delayed command from sidebar or voice
             if next_command:
-                # We have a command from sidebar, use it and clear
-                st.session_state.command_input = next_command
+                # Use direct value setting to avoid warning
+                if 'command_input' in st.session_state:
+                    del st.session_state.command_input
             
-            # Text input for command - Streamlit will automatically detect changes
+            # Text input for command - Use empty key for immediate value
             command = st.text_input(
                 "Enter command",
-                value=st.session_state.get('command_input', ''),
+                value=next_command if next_command else "", 
                 placeholder="Type your command here (e.g., ls, pwd, python)",
                 label_visibility="collapsed",
                 key="command_input"
             )
             
-            # Check if command has changed since last render
-            if 'prev_command' not in st.session_state:
-                st.session_state.prev_command = ''
-                
-            # Always get suggestions for current command input
-            # This will update every time the app reruns
-            
-            # Track if the command changed to update the UI accordingly
-            current_command = st.session_state.command_input
-            command_changed = current_command != st.session_state.prev_command
-            st.session_state.prev_command = current_command
-            
-            # Show suggestions based on current input
-            suggestions = st.session_state.suggestion_engine.get_suggestions(current_command)
+            # Get suggestions based on current input
+            # With this approach, suggestions update on every keystroke as 
+            # Streamlit reruns the app on each interaction
+            suggestions = st.session_state.suggestion_engine.get_suggestions(command)
             if suggestions:
                 # Suggestion container with custom styling
                 with st.container():
