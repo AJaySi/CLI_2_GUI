@@ -2,11 +2,11 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def voice_input_component():
-    """Custom component for voice input using Web Speech API"""
+    """Custom component for voice input using Web Speech API (icon-only version)"""
     # JavaScript code for voice recognition
     voice_js = """
     <div style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace;">
-        <button id="startButton" style="background-color: #61afef; color: #282c34; border: 1px solid #61afef; border-radius: 4px; padding: 8px 12px; cursor: pointer; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button id="startButton" style="background-color: #61afef; color: #282c34; border: 1px solid #61afef; border-radius: 4px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 8a3 3 0 0 0 3-3V3a3 3 0 0 0-6 0v2a3 3 0 0 0 3 3z"/>
                 <path d="M5 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
@@ -14,22 +14,20 @@ def voice_input_component():
                 <path d="M10.828 10.828a4 4 0 0 1-7.656 0h.06c0-.012 0-.024-.002-.036v-.276A1 1 0 0 1 4 9h8a1 1 0 0 1 .768.36v.276c0 .012 0 .024-.002.036h.06a4 4 0 0 1-7.656 0z"/>
                 <path d="M8 11a5 5 0 0 0-5 5v3h10v-3a5 5 0 0 0-5-5z"/>
             </svg>
-            <span>Voice Input</span>
         </button>
-        <div id="status" style="margin-top:8px; color: #98c379; font-size: 0.875rem;"></div>
-        <div id="result" style="margin-top:8px; min-height: 30px; padding: 8px; border: 1px solid #3b4048; background-color: #21252b; color: #98c379; border-radius: 4px;"></div>
+        <div id="status" style="margin-top:4px; color: #98c379; font-size: 0.75rem; height: 20px;"></div>
         
         <script>
             const startButton = document.getElementById('startButton');
             const statusDiv = document.getElementById('status');
-            const resultDiv = document.getElementById('result');
             
             // Check if browser supports speech recognition
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
             if (!SpeechRecognition) {
-                statusDiv.innerHTML = "Your browser doesn't support voice recognition. Try Chrome or Edge.";
+                statusDiv.innerHTML = "Not supported";
                 startButton.disabled = true;
+                startButton.style.opacity = "0.5";
             } else {
                 const recognition = new SpeechRecognition();
                 recognition.continuous = false;
@@ -39,9 +37,9 @@ def voice_input_component():
                 let finalTranscript = '';
                 
                 recognition.onstart = () => {
-                    statusDiv.innerHTML = "Listening... Speak now.";
+                    statusDiv.innerHTML = "Listening...";
                     startButton.disabled = true;
-                    resultDiv.innerHTML = "";
+                    startButton.style.backgroundColor = "#e06c75"; // Red while recording
                     finalTranscript = '';
                 };
                 
@@ -57,19 +55,22 @@ def voice_input_component():
                         }
                     }
                     
-                    resultDiv.innerHTML = 
-                        `<div style="color: #98c379; font-weight: medium;">${finalTranscript}</div>` + 
-                        `<div style="color: #5c6370;">${interimTranscript}</div>`;
+                    // Only update status with interim
+                    if (interimTranscript) {
+                        statusDiv.innerHTML = interimTranscript;
+                    }
                 };
                 
                 recognition.onerror = (event) => {
-                    statusDiv.innerHTML = `Error occurred: ${event.error}`;
+                    statusDiv.innerHTML = `Error: ${event.error}`;
                     startButton.disabled = false;
+                    startButton.style.backgroundColor = "#61afef"; // Back to blue
                 };
                 
                 recognition.onend = () => {
-                    statusDiv.innerHTML = "Voice recognition ended.";
+                    statusDiv.innerHTML = "Ready";
                     startButton.disabled = false;
+                    startButton.style.backgroundColor = "#61afef"; // Back to blue
                     
                     // Send the recognized text to Streamlit
                     if (finalTranscript) {
@@ -93,8 +94,8 @@ def voice_input_component():
     </div>
     """
     
-    # Component with default height
-    component_value = components.html(voice_js, height=130)
+    # Component with minimal height
+    component_value = components.html(voice_js, height=65)
     return component_value
 
 def handle_voice_input():

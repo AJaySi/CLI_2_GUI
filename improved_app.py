@@ -549,7 +549,7 @@ def main():
     st.markdown("Enter commands below to execute them or use the quick commands in the sidebar.")
     
     # Command input and execute button
-    col1, col2, col3 = st.columns([5, 1, 1])
+    col1, col2 = st.columns([5, 1])
     
     # Check for command from sidebar
     next_command = st.session_state.get('next_command', '')
@@ -557,26 +557,30 @@ def main():
         # Clear it after use
         st.session_state.next_command = ''
     
-    # Check for voice input
-    voice_text = handle_voice_input()
-    if voice_text:
-        # Update the command with voice input
-        next_command = voice_text
-    
     with col1:
-        command = st.text_input(
-            "Enter command",
-            value=next_command,
-            placeholder="Type your command here (e.g., ls, pwd, python)",
-            label_visibility="collapsed"
-        )
+        # Use a container to put command input and voice button side by side
+        input_container = st.container()
+        input_col1, input_col2 = input_container.columns([9, 1])
+        
+        with input_col1:
+            command = st.text_input(
+                "Enter command",
+                value=next_command,
+                placeholder="Type your command here (e.g., ls, pwd, python)",
+                label_visibility="collapsed"
+            )
+        
+        # Voice input in the same row as command input
+        with input_col2:
+            # Check for voice input and pass it to command input
+            voice_text = handle_voice_input()
+            if voice_text:
+                # Update the command with voice input and rerun to update UI
+                st.session_state.next_command = voice_text
+                st.rerun()
     
     with col2:
         execute = st.button("Execute", type="primary", use_container_width=True)
-    
-    with col3:
-        st.markdown("<div style='margin-top: 7px;'></div>", unsafe_allow_html=True)
-        st.write("or")
     
     # Show stop button if a command is running
     if st.session_state.is_command_running and st.session_state.command_process:
