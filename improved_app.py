@@ -7,6 +7,7 @@ from queue import Queue, Empty
 from voice_input import handle_voice_input
 from command_suggestions import CommandSuggestionEngine
 from styles import apply_styles, get_theme_names
+from mascot_system import create_mascot_instance, render_mascot_reaction, mascot_settings
 
 # Initialize session state variables
 def initialize_session_state():
@@ -28,6 +29,13 @@ def initialize_session_state():
         st.session_state.accessibility_mode = False
     if 'selected_theme' not in st.session_state:
         st.session_state.selected_theme = "Blue to Purple"
+    # Initialize mascot settings
+    if 'enable_mascot' not in st.session_state:
+        st.session_state.enable_mascot = True
+    if 'openai_api_key' not in st.session_state:
+        st.session_state.openai_api_key = ""
+    if 'mascot' not in st.session_state:
+        st.session_state.mascot = create_mascot_instance()
 
 def format_timestamp():
     """Return formatted current timestamp"""
